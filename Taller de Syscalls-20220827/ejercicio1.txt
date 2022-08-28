@@ -1,0 +1,190 @@
+######### EJERCICIO 1
+
+strace -q -f ./hai64 echo "test test"
+
+execve("./hai64", ["./hai64", "echo", "test test"], 0x7fff43a9b250 /* 49 vars */) = 0
+uname({sysname="Linux", nodename="ubuntu", ...}) = 0
+brk(NULL)                               = 0x974000
+brk(0x9751c0)                           = 0x9751c0
+arch_prctl(ARCH_SET_FS, 0x974880)       = 0
+readlink("/proc/self/exe", "/home/franciscobernardez/Documen"..., 4096) = 84
+brk(0x9961c0)                           = 0x9961c0
+brk(0x997000)                           = 0x997000
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x974b50) = 2968
+# -----------
+# HASTA ACA, EL PROCESO CREO UN HIJO. 
+# PADRE: 2967
+# HIJO:  2968
+# -----------
+
+[pid  2967] rt_sigaction(SIGINT, {sa_handler=0x40108e, sa_mask=[INT], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x406bf0},  <unfinished ...>
+# PADRE MANJEA SIGINT:interrupcion teclado saltando a 0x40108e
+
+[pid  2968] rt_sigaction(SIGURG, {sa_handler=0x40105e, sa_mask=[URG], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x406bf0},  <unfinished ...>
+# HIJO MANEJA SIGURG:Urgent condition on socket saltando a 0x40105e
+
+[pid  2967] <... rt_sigaction resumed>{sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+[pid  2968] <... rt_sigaction resumed>{sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+# PADRE E HIJO DEFINEN EL HANDLE POR DEFECTO, PERO NO ESTOY SEGURO PARA QUE.
+
+[pid  2967] rt_sigprocmask(SIG_BLOCK, [CHLD], [], 8) = 0
+# PADRE BLOQUEA LA SEÑAL SIG_BLOCK, Y LA MANEJA CON [CHLD] SEA LO QUE SEA ESO
+[pid  2967] rt_sigaction(SIGCHLD, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+# PADRE MANEJA SIGCHILD, APARENTEMENTE POR DEFECTO. SIG_DFL
+[pid  2967] rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+# PADRE DESBLOQUEA TODAS LAS SEÑALES ?
+[pid  2967] nanosleep({tv_sec=1, tv_nsec=0}, 0x7ffd47eab510) = 0
+# SLEEP
+[pid  2967] write(1, "sup!\n", 5sup!
+)       = 5
+# PADRE ESCRIBE SUP POR PANTALLA
+[pid  2967] kill(2968, SIGURG)          = 0
+# PADRE ENVIA SIGURG AL HIJO
+
+[pid  2968] --- SIGURG {si_signo=SIGURG, si_code=SI_USER, si_pid=2967, si_uid=1000} ---
+[pid  2967] rt_sigprocmask(SIG_BLOCK, [CHLD],  <unfinished ...>
+[pid  2968] write(1, "ya va!\n", 7ya va!
+ <unfinished ...>
+# HIJO RECIBE LA SEÑAL, LA BLOQUE Y MANEJA. IMPRIME "YA VA"
+
+[pid  2967] <... rt_sigprocmask resumed>[], 8) = 0
+[pid  2968] <... write resumed>)        = 7
+[pid  2967] rt_sigaction(SIGCHLD, NULL,  <unfinished ...>
+# PADRE RECIBE SIGCHILD - NO ENTIENDO SI ES AUTOMATICO O POR QUE LA RECIBE.
+
+[pid  2968] rt_sigreturn({mask=[]} <unfinished ...>
+[pid  2967] <... rt_sigaction resumed>{sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+[pid  2968] <... rt_sigreturn resumed>) = 0
+[pid  2967] rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+[pid  2967] nanosleep({tv_sec=1, tv_nsec=0}, 0x7ffd47eab510) = 0
+[pid  2967] write(1, "sup!\n", 5sup!
+)       = 5
+[pid  2967] kill(2968, SIGURG)          = 0
+[pid  2968] --- SIGURG {si_signo=SIGURG, si_code=SI_USER, si_pid=2967, si_uid=1000} ---
+[pid  2967] rt_sigprocmask(SIG_BLOCK, [CHLD],  <unfinished ...>
+[pid  2968] write(1, "ya va!\n", 7ya va!
+ <unfinished ...>
+[pid  2967] <... rt_sigprocmask resumed>[], 8) = 0
+[pid  2968] <... write resumed>)        = 7
+[pid  2967] rt_sigaction(SIGCHLD, NULL,  <unfinished ...>
+[pid  2968] rt_sigreturn({mask=[]} <unfinished ...>
+[pid  2967] <... rt_sigaction resumed>{sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+[pid  2968] <... rt_sigreturn resumed>) = 1
+[pid  2967] rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+[pid  2967] nanosleep({tv_sec=1, tv_nsec=0}, 0x7ffd47eab510) = 0
+[pid  2967] write(1, "sup!\n", 5sup!
+)       = 5
+[pid  2967] kill(2968, SIGURG)          = 0
+[pid  2968] --- SIGURG {si_signo=SIGURG, si_code=SI_USER, si_pid=2967, si_uid=1000} ---
+[pid  2967] rt_sigprocmask(SIG_BLOCK, [CHLD],  <unfinished ...>
+[pid  2968] write(1, "ya va!\n", 7 <unfinished ...>
+[pid  2967] <... rt_sigprocmask resumed>[], 8) = 0
+ya va!
+[pid  2968] <... write resumed>)        = 7
+[pid  2967] rt_sigaction(SIGCHLD, NULL,  <unfinished ...>
+[pid  2968] rt_sigreturn({mask=[]} <unfinished ...>
+[pid  2967] <... rt_sigaction resumed>{sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+[pid  2968] <... rt_sigreturn resumed>) = 2
+[pid  2967] rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+[pid  2967] nanosleep({tv_sec=1, tv_nsec=0}, 0x7ffd47eab510) = 0
+[pid  2967] write(1, "sup!\n", 5sup!
+)       = 5
+[pid  2967] kill(2968, SIGURG)          = 0
+[pid  2968] --- SIGURG {si_signo=SIGURG, si_code=SI_USER, si_pid=2967, si_uid=1000} ---
+[pid  2967] rt_sigprocmask(SIG_BLOCK, [CHLD],  <unfinished ...>
+[pid  2968] write(1, "ya va!\n", 7 <unfinished ...>
+[pid  2967] <... rt_sigprocmask resumed>[], 8) = 0
+ya va!
+[pid  2968] <... write resumed>)        = 7
+[pid  2967] rt_sigaction(SIGCHLD, NULL,  <unfinished ...>
+[pid  2968] rt_sigreturn({mask=[]} <unfinished ...>
+[pid  2967] <... rt_sigaction resumed>{sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+[pid  2968] <... rt_sigreturn resumed>) = 3
+[pid  2967] rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+[pid  2967] nanosleep({tv_sec=1, tv_nsec=0}, 0x7ffd47eab510) = 0
+[pid  2967] write(1, "sup!\n", 5sup!
+)       = 5
+[pid  2967] kill(2968, SIGURG)          = 0
+[pid  2968] --- SIGURG {si_signo=SIGURG, si_code=SI_USER, si_pid=2967, si_uid=1000} ---
+[pid  2967] rt_sigprocmask(SIG_BLOCK, [CHLD],  <unfinished ...>
+[pid  2968] write(1, "ya va!\n", 7ya va!
+ <unfinished ...>
+# ACA TERMINAN LOS ENVIOS DE SIGURG DEL PADRE AL HIJO. ALGO PASA QUE SALE DEL CICLO...
+
+[pid  2967] <... rt_sigprocmask resumed>[], 8) = 0
+[pid  2968] <... write resumed>)        = 7
+[pid  2967] rt_sigaction(SIGCHLD, NULL,  <unfinished ...>
+[pid  2968] rt_sigreturn({mask=[]} <unfinished ...>
+[pid  2967] <... rt_sigaction resumed>{sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+[pid  2968] <... rt_sigreturn resumed>) = 4
+[pid  2967] rt_sigprocmask(SIG_SETMASK, [],  <unfinished ...>
+[pid  2968] getppid( <unfinished ...>
+[pid  2967] <... rt_sigprocmask resumed>NULL, 8) = 0
+[pid  2968] <... getppid resumed>)      = 2967
+[pid  2967] nanosleep({tv_sec=1, tv_nsec=0},  <unfinished ...>
+[pid  2968] kill(2967, SIGINT <unfinished ...>
+# ACA EL HIJO MANDA UN SIGINT (APARENTEMENTE HAY UN CONTADOR O ALGO...)
+
+[pid  2967] <... nanosleep resumed>{tv_sec=0, tv_nsec=999733380}) = ? ERESTART_RESTARTBLOCK (Interrupted by signal)
+[pid  2968] <... kill resumed>)         = 0
+[pid  2967] --- SIGINT {si_signo=SIGINT, si_code=SI_USER, si_pid=2968, si_uid=1000} ---
+# PADRE MANEJA SEÑAL SIGINT
+
+[pid  2968] execve("/usr/local/sbin/echo", ["echo", "test test"], 0x7ffd47eab808 /* 49 vars */ <unfinished ...>
+# HIJO EJECUTA LA FUNCION PASADA CON EXECVE
+
+[pid  2967] wait4(-1,  <unfinished ...>
+# PADRE ESPERA QUE EL HIJO TERMINE
+
+[pid  2968] <... execve resumed>)       = -1 ENOENT (No such file or directory)
+[pid  2968] execve("/usr/local/bin/echo", ["echo", "test test"], 0x7ffd47eab808 /* 49 vars */) = -1 ENOENT (No such file or directory)
+[pid  2968] execve("/usr/sbin/echo", ["echo", "test test"], 0x7ffd47eab808 /* 49 vars */) = -1 ENOENT (No such file or directory)
+[pid  2968] execve("/usr/bin/echo", ["echo", "test test"], 0x7ffd47eab808 /* 49 vars */) = 0
+[pid  2968] brk(NULL)                   = 0x5628baa20000
+[pid  2968] arch_prctl(0x3001 /* ARCH_??? */, 0x7fffb7895680) = -1 EINVAL (Invalid argument)
+[pid  2968] access("/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory)
+[pid  2968] openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+[pid  2968] fstat(3, {st_mode=S_IFREG|0644, st_size=59932, ...}) = 0
+[pid  2968] mmap(NULL, 59932, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f5fb6a8d000
+[pid  2968] close(3)                    = 0
+[pid  2968] openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+[pid  2968] read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\300A\2\0\0\0\0\0"..., 832) = 832
+[pid  2968] pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+[pid  2968] pread64(3, "\4\0\0\0\20\0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0", 32, 848) = 32
+[pid  2968] pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\30x\346\264ur\f|Q\226\236i\253-'o"..., 68, 880) = 68
+[pid  2968] fstat(3, {st_mode=S_IFREG|0755, st_size=2029592, ...}) = 0
+[pid  2968] mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f5fb6a8b000
+[pid  2968] pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+[pid  2968] pread64(3, "\4\0\0\0\20\0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0", 32, 848) = 32
+[pid  2968] pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\30x\346\264ur\f|Q\226\236i\253-'o"..., 68, 880) = 68
+[pid  2968] mmap(NULL, 2037344, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f5fb6899000
+[pid  2968] mmap(0x7f5fb68bb000, 1540096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x22000) = 0x7f5fb68bb000
+[pid  2968] mmap(0x7f5fb6a33000, 319488, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x19a000) = 0x7f5fb6a33000
+[pid  2968] mmap(0x7f5fb6a81000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1e7000) = 0x7f5fb6a81000
+[pid  2968] mmap(0x7f5fb6a87000, 13920, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f5fb6a87000
+[pid  2968] close(3)                    = 0
+[pid  2968] arch_prctl(ARCH_SET_FS, 0x7f5fb6a8c580) = 0
+[pid  2968] mprotect(0x7f5fb6a81000, 16384, PROT_READ) = 0
+[pid  2968] mprotect(0x5628b8e5d000, 4096, PROT_READ) = 0
+[pid  2968] mprotect(0x7f5fb6ac9000, 4096, PROT_READ) = 0
+[pid  2968] munmap(0x7f5fb6a8d000, 59932) = 0
+[pid  2968] brk(NULL)                   = 0x5628baa20000
+[pid  2968] brk(0x5628baa41000)         = 0x5628baa41000
+[pid  2968] openat(AT_FDCWD, "/usr/lib/locale/locale-archive", O_RDONLY|O_CLOEXEC) = 3
+[pid  2968] fstat(3, {st_mode=S_IFREG|0644, st_size=5699248, ...}) = 0
+[pid  2968] mmap(NULL, 5699248, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f5fb6329000
+[pid  2968] close(3)                    = 0
+[pid  2968] fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0), ...}) = 0
+[pid  2968] write(1, "test test\n", 10test test
+) = 10
+[pid  2968] close(1)                    = 0
+[pid  2968] close(2)                    = 0
+[pid  2968] exit_group(0)               = ?
+[pid  2968] +++ exited with 0 +++
+<... wait4 resumed>[{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 2968
+--- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=2968, si_uid=1000, si_status=0, si_utime=500, si_stime=0} ---
+exit_group(0)                           = ?
++++ exited with 0 +++
+
+######### END EJERCICIO 1
