@@ -4,7 +4,6 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
 #include "config.h"
 
 int main(int argc, char **argv){
@@ -37,9 +36,15 @@ int main(int argc, char **argv){
 	name.sin_port = htons(PORT);
 
 	//COMPLETAR: conectar el socket
-
+	
+	if (connect(s, (struct sockaddr *)&name, sizeof(name)) < 0) {
+		perror("connection failed");
+		exit(1);
+	}
+	printf("me conecte. IP: %s, PORT: %d\n", argv[1], PORT);
 
 	//COMPLETAR: Recibir mensaje de bienvenida y ponerlo en bufrecv
+	ssize_t recv(s, bufrecv, 10, 0);
 
 	printf("Bienvenida: %s\n",bufrecv);
 
@@ -50,6 +55,8 @@ int main(int argc, char **argv){
 			if (!feof(stdin))
 				perror("getline");
 			break;
+			printf("\n");
+			printf("Enviaste: %s\n", w);
 		}
 		//Nos fijamos si era ENDMSG para cortar la ejecucion
 		if (strncmp(bufsend, ENDMSG, w) == 0){
