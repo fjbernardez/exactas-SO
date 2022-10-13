@@ -1,0 +1,35 @@
+comandos utiles:
+	
+	- logs del kernel:
+		
+		sudo cat /var/log/kern.log
+
+	- limpiar logs del kernel
+
+		sudo truncate -s 0 /var/log/kern.log
+
+	- permisos a la carpeta drivers
+
+		sudo chmod 777 /dev/DRIVER_NAME
+
+	- listar modulos cargados
+
+		sudo lsmod
+
+	- cargar modulo
+
+		sudo insmod NAME.ko
+
+	- remover modulo
+
+		sudo rmmod NAME.ko
+
+	- ejemplo trivial escritura en el driver
+
+		echo "text" > /dev/DRIVER_NAME
+
+	- ejemplo de lectura
+
+		dd if=/dev/DRIVER_NAME of=out.txt bs=TAMANO count=CANTIDAD	
+		dd if=/dev/nulo of=out.txt bs=1 count=10 --> lee desde nulo y escribe en tu posicion actual en el archivo out.txt 1 byte, 10 veces.
+
