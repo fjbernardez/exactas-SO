@@ -1,0 +1,135 @@
+{
+	"kind" : "toolchains",
+	"toolchains" : 
+	[
+		{
+			"compiler" : 
+			{
+				"id" : "GNU",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib/gcc/x86_64-w64-mingw32/7.2.0/include",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/include",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib/gcc/x86_64-w64-mingw32/7.2.0/include-fixed",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/x86_64-w64-mingw32/include"
+					],
+					"linkDirectories" : 
+					[
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib/gcc/x86_64-w64-mingw32/7.2.0",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib/gcc",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/x86_64-w64-mingw32/lib",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"mingw32",
+						"gcc",
+						"moldname",
+						"mingwex",
+						"pthread",
+						"advapi32",
+						"shell32",
+						"user32",
+						"kernel32",
+						"mingw32",
+						"gcc",
+						"moldname",
+						"mingwex"
+					]
+				},
+				"path" : "C:/Program Files/Haskell Platform/8.6.5/mingw/bin/cc.exe",
+				"version" : "7.2.0"
+			},
+			"language" : "C",
+			"sourceFileExtensions" : 
+			[
+				"c",
+				"m"
+			]
+		},
+		{
+			"compiler" : 
+			{
+				"id" : "GNU",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/include/c++/7.2.0",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/include/c++/7.2.0/x86_64-w64-mingw32",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/include/c++/7.2.0/backward",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib/gcc/x86_64-w64-mingw32/7.2.0/include",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/include",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib/gcc/x86_64-w64-mingw32/7.2.0/include-fixed",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/x86_64-w64-mingw32/include"
+					],
+					"linkDirectories" : 
+					[
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib/gcc/x86_64-w64-mingw32/7.2.0",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib/gcc",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/x86_64-w64-mingw32/lib",
+						"C:/Program Files/Haskell Platform/8.6.5/mingw/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"stdc++",
+						"mingw32",
+						"gcc_s",
+						"gcc",
+						"moldname",
+						"mingwex",
+						"pthread",
+						"advapi32",
+						"shell32",
+						"user32",
+						"kernel32",
+						"mingw32",
+						"gcc_s",
+						"gcc",
+						"moldname",
+						"mingwex"
+					]
+				},
+				"path" : "C:/Program Files/Haskell Platform/8.6.5/mingw/bin/c++.exe",
+				"version" : "7.2.0"
+			},
+			"language" : "CXX",
+			"sourceFileExtensions" : 
+			[
+				"C",
+				"M",
+				"c++",
+				"cc",
+				"cpp",
+				"cxx",
+				"mm",
+				"mpp",
+				"CPP",
+				"ixx",
+				"cppm"
+			]
+		},
+		{
+			"compiler" : 
+			{
+				"implicit" : {},
+				"path" : "C:/Program Files/Haskell Platform/8.6.5/mingw/bin/windres.exe"
+			},
+			"language" : "RC",
+			"sourceFileExtensions" : 
+			[
+				"rc",
+				"RC"
+			]
+		}
+	],
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 0
+	}
+}

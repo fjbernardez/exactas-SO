@@ -8,7 +8,7 @@
 #include "definiciones.h"
 
 using namespace std;
-class Config{
+class Config {
     public:
         Config();
         vector<coordenadas> pos_rojo, pos_azul;
