@@ -13,7 +13,7 @@ using namespace std;
 class gameMaster {
 private:
     // Atributos Privados
-    int nro_ronda = 0;
+    int nro_ronda = 1;
     int x, y, jugadores_por_equipos;
     vector<vector<color>> tablero;
     vector<coordenadas> pos_jugadores_azules, pos_jugadores_rojos;
@@ -55,6 +55,7 @@ public:
     //
     //...
     //
+    mutex moviendo_jugador;
 };
 
 #endif // GAMEMASTER_H

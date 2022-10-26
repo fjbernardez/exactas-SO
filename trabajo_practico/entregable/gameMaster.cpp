@@ -1,6 +1,8 @@
 #include <sys/unistd.h>
 #include <assert.h>     /* assert */
 #include "gameMaster.h"
+#include <mutex>
+#include <semaphore.h>
 
 bool gameMaster::es_posicion_valida(coordenadas pos) {
 	return (pos.first > 0) && (pos.first < x) && (pos.second > 0) && (pos.second < y);
@@ -89,16 +91,54 @@ void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos
 
 
 int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
-	// Chequear que la movida sea valida
-	// Que no se puedan mover 2 jugadores a la vez
-    // setear la variable ganador
+    // Chequear que la movida sea valida
+    coordenadas actual_pos;
+    if(turno == AZUL){
+        actual_pos = pos_jugadores_azules[nro_jugador];
+    }
+    else{
+        actual_pos = pos_jugadores_rojos[nro_jugador];
+    }
+    coordenadas apuntada_pos = proxima_posicion(actual_pos, dir);
+    if (es_posicion_valida(apuntada_pos)){
+        // Que no se puedan mover 2 jugadores a la vez
+        moviendo_jugador.lock();
+        // Inicio Critica
+        color apuntado_color = en_posicion(apuntada_pos);
+        if(es_color_libre(apuntado_color)){
+            mover_jugador_tablero(actual_pos,apuntada_pos,turno);
+        }
+        if(((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) || ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))){
+            mover_jugador_tablero(actual_pos,apuntada_pos,turno);
+            // setear la variable ganador
+            ganador = turno;
+            nro_ronda = 0;
+        }
+        // Fin Critica
+        moviendo_jugador.unlock();
+
+    }
+
     // Devolver acorde a la descripción
+    return nro_ronda;
+
 }
 
 
 void gameMaster::termino_ronda(color equipo) {
 	// FIXME: Hacer chequeo de que es el color correcto que está llamando
 	// FIXME: Hacer chequeo que hayan terminado todos los jugadores del equipo o su quantum (via mover_jugador)
+    // Hacer esto luego de checkear lo de arriba
+
+    nro_ronda++;
+
+    if (turno == AZUL){
+        turno = ROJO;
+    }
+    else{
+        turno = AZUL;
+    }
+
 }
 
 bool gameMaster::termino_juego() {
