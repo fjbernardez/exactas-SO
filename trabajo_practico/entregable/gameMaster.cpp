@@ -118,6 +118,8 @@ int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
         moviendo_jugador.unlock();
 
     }
+    // Queda hacer alguna variable que se modifique y le permita al gameMaster tener un control
+    //  de cuentos jugadores del equipo se movieron, o el quantum
 
     // Devolver acorde a la descripción
     return nro_ronda;
@@ -129,16 +131,15 @@ void gameMaster::termino_ronda(color equipo) {
 	// FIXME: Hacer chequeo de que es el color correcto que está llamando
 	// FIXME: Hacer chequeo que hayan terminado todos los jugadores del equipo o su quantum (via mover_jugador)
     // Hacer esto luego de checkear lo de arriba
-
-    nro_ronda++;
-
-    if (turno == AZUL){
-        turno = ROJO;
+    if(equipo == turno){
+        nro_ronda++;
+        if (turno == AZUL){
+            turno = ROJO;
+        }
+        else{
+            turno = AZUL;
+        }
     }
-    else{
-        turno = AZUL;
-    }
-
 }
 
 bool gameMaster::termino_juego() {
