@@ -91,7 +91,6 @@ void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos
 
 
 int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
-    // Chequear que la movida sea valida
     coordenadas actual_pos;
     if(turno == AZUL){
         actual_pos = pos_jugadores_azules[nro_jugador];
@@ -100,27 +99,27 @@ int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
         actual_pos = pos_jugadores_rojos[nro_jugador];
     }
     coordenadas apuntada_pos = proxima_posicion(actual_pos, dir);
-    if (es_posicion_valida(apuntada_pos)){
-        // Que no se puedan mover 2 jugadores a la vez
-        moviendo_jugador.lock();
-        // Inicio Critica
-        color apuntado_color = en_posicion(apuntada_pos);
-        if(es_color_libre(apuntado_color)){
-            mover_jugador_tablero(actual_pos,apuntada_pos,turno);
-        }
-        if(((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) || ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))){
-            mover_jugador_tablero(actual_pos,apuntada_pos,turno);
-            // setear la variable ganador
-            ganador = turno;
-            nro_ronda = 0;
-        }
-        // Fin Critica
-        moviendo_jugador.unlock();
-
+    // Chequear que la movida sea valida
+    assert(es_posicion_valida(apuntada_pos));
+    // Que no se puedan mover 2 jugadores a la vez
+    moviendo_jugador.lock();
+    // Inicio Critica
+    color apuntado_color = en_posicion(apuntada_pos);
+    if(es_color_libre(apuntado_color)){
+        mover_jugador_tablero(actual_pos,apuntada_pos,turno);
     }
-    // Queda hacer alguna variable que se modifique y le permita al gameMaster tener un control
-    //  de cuentos jugadores del equipo se movieron, o el quantum
-
+    else if(((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) || ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))){
+        mover_jugador_tablero(actual_pos,apuntada_pos,turno);
+        // setear la variable ganador
+        ganador = turno;
+        nro_ronda = 0;
+    }
+    else {
+        // Devolver -1 simboliza que el jugador quizo moverse a un lugar y estaba ocupado
+        return -1;
+    }
+    // Fin Critica
+    moviendo_jugador.unlock();
     // Devolver acorde a la descripción
     return nro_ronda;
 
@@ -131,15 +130,9 @@ void gameMaster::termino_ronda(color equipo) {
 	// FIXME: Hacer chequeo de que es el color correcto que está llamando
 	// FIXME: Hacer chequeo que hayan terminado todos los jugadores del equipo o su quantum (via mover_jugador)
     // Hacer esto luego de checkear lo de arriba
-    if(equipo == turno){
-        nro_ronda++;
-        if (turno == AZUL){
-            turno = ROJO;
-        }
-        else{
-            turno = AZUL;
-        }
-    }
+    assert(equipo == turno);
+    nro_ronda++;
+    turno = (turno == ROJO)? AZUL: ROJO;
 }
 
 bool gameMaster::termino_juego() {
