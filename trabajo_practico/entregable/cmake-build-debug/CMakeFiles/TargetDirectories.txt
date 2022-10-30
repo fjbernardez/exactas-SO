@@ -1,3 +1,0 @@
-D:/Documents/GitHub/exactas-SO/trabajo_practico/entregable/cmake-build-debug/CMakeFiles/test_tp_sistemas.dir
-D:/Documents/GitHub/exactas-SO/trabajo_practico/entregable/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/Documents/GitHub/exactas-SO/trabajo_practico/entregable/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -1,8 +1,0 @@
-# ninja log v5
-7	617	6882466698752756	CMakeFiles/test_tp_sistemas.dir/config.cpp.obj	e5a14f87e54914fb
-0	749	6882466700079201	CMakeFiles/test_tp_sistemas.dir/main.cpp.obj	de6dadb56ac4d716
-4	873	6882466701315888	CMakeFiles/test_tp_sistemas.dir/gameMaster.cpp.obj	19c5a0ea136f58f
-4	742	6882467874115803	CMakeFiles/test_tp_sistemas.dir/equipo.cpp.obj	223ca5c3e89167df
-742	1035	6882467877031351	test_tp_sistemas.exe	17d5f471f777fd0f
-4	748	6882468225523291	CMakeFiles/test_tp_sistemas.dir/equipo.cpp.obj	223ca5c3e89167df
-748	964	6882468227657603	test_tp_sistemas.exe	17d5f471f777fd0f
