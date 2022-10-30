@@ -14,17 +14,15 @@ using namespace std;
 class gameMaster {
 private:
     // Atributos Privados
-    int nro_ronda = 0;
+    int nro_ronda = 1;
     int x, y, jugadores_por_equipos;
     vector<vector<color>> tablero;
     vector<coordenadas> pos_jugadores_azules, pos_jugadores_rojos;
     coordenadas pos_bandera_roja, pos_bandera_azul;
     color turno;
     estrategia strat;
-
-    //
     //...
-    //
+    mutex moviendo_jugador;
 
     // Métodos privados
     color obtener_coordenadas(coordenadas coord);
