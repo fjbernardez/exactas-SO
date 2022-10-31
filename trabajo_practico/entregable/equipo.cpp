@@ -45,9 +45,9 @@ void Equipo::jugador(int nro_jugador) {
                         dir_a_mover = (nro_intento == 0) ? DERECHA : ARRIBA;
                     }
                     else{
-                        dir_a_mover = (nro_intento == 0) ? ARRIBA : IZQUIERDA;
+                        dir_a_mover = (nro_intento == 0) ? IZQUIERDA : ABAJO;
                     }
-
+                    //nro_ronda devuelve -1 si el lugar al que se quizo mover estaba bloqueado
                     nro_ronda = belcebu->mover_jugador(dir_a_mover, nro_jugador);
                 }
 
