@@ -8,6 +8,30 @@ direccion Equipo::apuntar_a(coordenadas pos1, coordenadas pos2) {
     if (pos2.first < pos1.first) return IZQUIERDA;
 }
 
+bool Equipo::puedeMover(coordenadas pos){
+    bool res = this->belcebu->es_posicion_valida(pos);
+    res = res && this->belcebu->en_posicion(pos) == VACIO;
+    return res;
+}
+
+int Equipo::distancia(coordenadas pos1, coordenadas pos2){
+    int res = abs(pos1.first - pos2.first) + abs(pos1.second - pos2.second);
+    return res;
+}
+
+int Equipo::jugadorMasCercano(){
+    int res = 0;
+    int distanciaMasCercano = distancia(this->posiciones[0], this->pos_bandera_contraria);
+    for(int i = 1; i < this->cant_jugadores; i++){
+        int dist = distancia(this->posiciones[i], this->pos_bandera_contraria);
+        if(dist < distanciaMasCercano){
+            res = i;
+            distanciaMasCercano = dist;
+        }
+    }
+    return res;
+}
+
 
 void Equipo::jugador(int nro_jugador) {
     //
