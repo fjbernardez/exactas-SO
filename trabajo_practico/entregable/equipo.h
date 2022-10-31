@@ -30,7 +30,14 @@ private:
     // Métodos privados
     direccion apuntar_a(coordenadas pos2, coordenadas pos1);
 
+    bool puedeMover(coordenadas pos);
+
+    int distancia(coordenadas pos1, coordenadas pos2);
+
+    int jugadorMasCercano();
+
     void jugador(int nro_jugador);
+
 
     coordenadas buscar_bandera_contraria();
     //
