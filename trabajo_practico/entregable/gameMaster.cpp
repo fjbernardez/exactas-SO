@@ -109,12 +109,22 @@ int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
     if(!termino_juego()){
         if (es_color_libre(apuntado_color)) {
             mover_jugador_tablero(actual_pos, apuntada_pos, turno);
+            if (turno == AZUL) {
+                pos_jugadores_azules[nro_jugador] = apuntada_pos;
+            } else {
+                pos_jugadores_rojos[nro_jugador] = apuntada_pos;
+            }
             cout << "MOVI A JUGADOR NUMERO " << nro_jugador<< " DEL EQUIPO " << turno;
             cout << " DE LA POSICION "  << actual_pos.first << " " << actual_pos.second << " A LA POSICION " << apuntada_pos.first << " " << apuntada_pos.second <<endl;
 
         } else if (((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) ||
                    ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
             mover_jugador_tablero(actual_pos, apuntada_pos, turno);
+            if (turno == AZUL) {
+                pos_jugadores_azules[nro_jugador] = apuntada_pos;
+            } else {
+                pos_jugadores_rojos[nro_jugador] = apuntada_pos;
+            }
             // setear la variable ganador
             cout << "GANO EL EQUIPO " << turno << endl;
             ganador = turno;
