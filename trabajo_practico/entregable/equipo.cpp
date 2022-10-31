@@ -34,6 +34,7 @@ void Equipo::jugador(int nro_jugador) {
                 else{
                     sem_wait(&belcebu->turno_rojo);
                 }
+
                 nro_intento = -1;
                 nro_ronda = -1;
                 //Seccion donde solo entran los jugadores si es el turno de su equipo
@@ -52,17 +53,18 @@ void Equipo::jugador(int nro_jugador) {
                 }
 
                 secuencial_mutex.lock();
-
-
                 cant_jugadores_que_ya_jugaron++;
                 if (cant_jugadores_que_ya_jugaron == cant_jugadores){
                     //belcebu le va a dar permisos al proximo equipo;
-
-                    belcebu->termino_ronda(equipo);
                     cant_jugadores_que_ya_jugaron = 0;
+                    belcebu->termino_ronda(equipo);
+                    for (int i = 0; i < cant_jugadores; ++i) {
+                        sem_post(&secuencial_sem);
+                    }
                 }
                 secuencial_mutex.unlock();
 
+                sem_wait(&secuencial_sem);
 
                 break;
 
@@ -117,7 +119,7 @@ void Equipo::comenzar() {
     //
     // ...
     //
-
+    sem_init(&secuencial_sem,0,0);
     // Creamos los jugadores
     for (int i = 0; i < cant_jugadores; i++) {
         jugadores.emplace_back(thread(&Equipo::jugador, this, i));
