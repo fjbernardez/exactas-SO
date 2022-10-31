@@ -17,20 +17,19 @@ int main() {
     Config config = *(new Config());
 
 
-    gameMaster belcebu = gameMaster(config);
+    gameMaster belcebu = gameMaster(config,strat);
 
 
     // Creo equipos (lanza procesos)
-    int quantum = 10;
     Equipo rojo(&belcebu, ROJO, strat, config.cantidad_jugadores, quantum, config.pos_rojo);
     Equipo azul(&belcebu, AZUL, strat, config.cantidad_jugadores, quantum, config.pos_azul);
-
 
     rojo.comenzar();
     azul.comenzar();
     rojo.terminar();
     azul.terminar();
-    //belcebu.play();
+    belcebu.comenzar_partida();
+
 
     cout << "Bandera capturada por el equipo " << belcebu.ganador << ". Felicidades!" << endl;
 

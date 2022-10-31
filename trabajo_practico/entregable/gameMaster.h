@@ -34,7 +34,7 @@ private:
 
 public:
     // Atributos públicos
-    gameMaster(Config config);
+    gameMaster(Config config, estrategia this_game_strat);
 
     void termino_ronda(color equipo); // Marca que un jugador terminó la ronda
     int mover_jugador(direccion dir, int nro_jugador);
@@ -64,6 +64,7 @@ public:
     //
     //...
     //
+    void comenzar_partida();
 };
 
 #endif // GAMEMASTER_H

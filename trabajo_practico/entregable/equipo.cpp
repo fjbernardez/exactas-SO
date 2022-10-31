@@ -15,12 +15,55 @@ void Equipo::jugador(int nro_jugador) {
     //
 
     while (!this->belcebu->termino_juego()) { // Chequear que no haya una race condition en gameMaster
+        // Numero de intento puede ser algo para que el jugador decida donde moverse si..
+        //.. fue bloqueado la primera vez
+        int nro_intento = -1;
+        int nro_ronda = -1;
         switch (this->strat) {
             //SECUENCIAL,RR,SHORTEST,USTEDES
             case (SECUENCIAL):
                 //
                 // ...
                 //
+
+                //La idea es que todos los jugadores se quedan esperando a que belcebu les de..
+                //.. permisos para pasar, el equipo rojo ya comienza con permisos para sus jugadores
+                if (equipo == AZUL){
+                    sem_wait(&belcebu->turno_azul);
+                }
+                else{
+                    sem_wait(&belcebu->turno_rojo);
+                }
+                nro_intento = -1;
+                nro_ronda = -1;
+                //Seccion donde solo entran los jugadores si es el turno de su equipo
+                while(nro_ronda == -1){
+                    nro_intento ++;
+                    //TODO: una funcion más inteligente para decidir dir_a_mover
+                    direccion dir_a_mover;
+                    if(equipo == ROJO){
+                        dir_a_mover = (nro_intento == 0) ? DERECHA : ARRIBA;
+                    }
+                    else{
+                        dir_a_mover = (nro_intento == 0) ? ARRIBA : IZQUIERDA;
+                    }
+
+                    nro_ronda = belcebu->mover_jugador(dir_a_mover, nro_jugador);
+                }
+
+                secuencial_mutex.lock();
+
+
+                cant_jugadores_que_ya_jugaron++;
+                if (cant_jugadores_que_ya_jugaron == cant_jugadores){
+                    //belcebu le va a dar permisos al proximo equipo;
+
+                    belcebu->termino_ronda(equipo);
+                    cant_jugadores_que_ya_jugaron = 0;
+                }
+                secuencial_mutex.unlock();
+
+
                 break;
 
             case (RR):

@@ -28,7 +28,7 @@ int gameMaster::distancia(coordenadas c1, coordenadas c2) {
     return abs(c1.first - c2.first) + abs(c1.second - c2.second);
 }
 
-gameMaster::gameMaster(Config config) {
+gameMaster::gameMaster(Config config,estrategia this_game_strat) {
     assert(config.x > 0);
     assert(config.y > 0); // Tamaño adecuado del tablero
 
@@ -80,7 +80,9 @@ gameMaster::gameMaster(Config config) {
     this->turno = ROJO;
 
     cout << "SE HA INICIALIZADO GAMEMASTER CON EXITO" << endl;
-    // Insertar código que crea necesario de inicialización 
+    // Insertar código que crea necesario de inicialización
+    assert( this_game_strat == SECUENCIAL || this_game_strat == USTEDES || this_game_strat == RR || this_game_strat == SHORTEST);
+    strat = this_game_strat;
 }
 
 void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos_nueva, color colorEquipo) {
@@ -104,17 +106,24 @@ int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
     moviendo_jugador.lock();
     // Inicio Critica
     color apuntado_color = en_posicion(apuntada_pos);
-    if (es_color_libre(apuntado_color)) {
-        mover_jugador_tablero(actual_pos, apuntada_pos, turno);
-    } else if (((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) ||
-               ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
-        mover_jugador_tablero(actual_pos, apuntada_pos, turno);
-        // setear la variable ganador
-        ganador = turno;
-        nro_ronda = 0;
-    } else {
-        // Devolver -1 simboliza que el jugador quizo moverse a un lugar y estaba ocupado
-        return -1;
+    if(!termino_juego()){
+        if (es_color_libre(apuntado_color)) {
+            mover_jugador_tablero(actual_pos, apuntada_pos, turno);
+            cout << "MOVI A JUGADOR NUMERO " << nro_jugador<< " DEL EQUIPO " << turno;
+            cout << " DE LA POSICION "  << actual_pos.first << " " << actual_pos.second << " A LA POSICION " << apuntada_pos.first << " " << apuntada_pos.second <<endl;
+
+        } else if (((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) ||
+                   ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
+            mover_jugador_tablero(actual_pos, apuntada_pos, turno);
+            // setear la variable ganador
+            cout << "GANO EL EQUIPO " << turno << endl;
+            ganador = turno;
+            nro_ronda = 0;
+        } else {
+            // Devolver -1 simboliza que el jugador quizo moverse a un lugar y estaba ocupado
+            moviendo_jugador.unlock();
+            return -1;
+        }
     }
     // Fin Critica
     moviendo_jugador.unlock();
@@ -128,9 +137,29 @@ void gameMaster::termino_ronda(color equipo) {
     // FIXME: Hacer chequeo de que es el color correcto que está llamando
     // FIXME: Hacer chequeo que hayan terminado todos los jugadores del equipo o su quantum (via mover_jugador)
     // Hacer esto luego de checkear lo de arriba
+
     assert(equipo == turno);
+    cout << "TERMINO EL EQUIPO " << turno << endl;
     nro_ronda++;
     turno = (turno == ROJO) ? AZUL : ROJO;
+    cout << "AHORA LE TOCA AL EQUIPO " << turno << endl;
+    switch (this->strat) {
+        case SECUENCIAL:
+            for (int i = 0; i < jugadores_por_equipos; ++i) {
+                if(turno== ROJO){
+                    sem_post(&turno_rojo);
+                }
+                else{
+                    sem_post(&turno_azul);
+                }
+            }
+        case RR:
+            break;
+        case SHORTEST:
+            break;
+        case USTEDES:
+            break;
+    }
 }
 
 bool gameMaster::termino_juego() {
@@ -158,4 +187,23 @@ coordenadas gameMaster::proxima_posicion(coordenadas anterior, direccion movimie
     }
     return anterior; // está haciendo una copia por constructor
 }
+
+void gameMaster::comenzar_partida(){
+    sem_init(&turno_rojo,0,0);
+    sem_init(&turno_azul,0,0);
+    switch (this->strat) {
+        case SECUENCIAL:
+            //Empiezar los rojos
+            for (int i = 0; i < jugadores_por_equipos; ++i) {
+                sem_post(&turno_rojo);
+            }
+        case RR:
+            break;
+        case SHORTEST:
+            break;
+        case USTEDES:
+            break;
+    }
+}
+
 

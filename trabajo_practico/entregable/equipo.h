@@ -24,6 +24,7 @@ private:
     //
     // ...
     //
+    mutex secuencial_mutex;
 
     // Métodos privados
     direccion apuntar_a(coordenadas pos2, coordenadas pos1);
