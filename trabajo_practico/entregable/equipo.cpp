@@ -20,8 +20,7 @@ void Equipo::jugador(int nro_jugador) {
         // Numero de intento puede ser algo para que el jugador decida donde moverse si..
         //.. fue bloqueado la primera vez
         int nro_intento = -1;
-        int nro_ronda = -1;
-        int xd = 0;
+        int nro_ronda = -1;      
 
         //La idea es que todos los jugadores se quedan esperando a que belcebu les de..
         //.. permisos para jugar cuando sea su turno, el equipo rojo ya comienza con permisos para sus jugadores
