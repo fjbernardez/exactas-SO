@@ -1,7 +1,8 @@
 #include "equipo.h"
-
+#include <assert.h>
 
 direccion Equipo::apuntar_a(coordenadas pos1, coordenadas pos2) {
+    assert(pos1 != pos2);
     if (pos2.second > pos1.second) return ABAJO;
     if (pos2.second < pos1.second) return ARRIBA;
     if (pos2.first > pos1.first) return DERECHA;
@@ -20,6 +21,7 @@ void Equipo::jugador(int nro_jugador) {
         //.. fue bloqueado la primera vez
         int nro_intento = -1;
         int nro_ronda = -1;
+        int xd = 0;
 
         //La idea es que todos los jugadores se quedan esperando a que belcebu les de..
         //.. permisos para jugar cuando sea su turno, el equipo rojo ya comienza con permisos para sus jugadores
