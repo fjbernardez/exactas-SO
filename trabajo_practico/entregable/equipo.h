@@ -24,8 +24,11 @@ private:
     //
     // ...
     //
-    mutex secuencial_mutex;
-    sem_t secuencial_sem;
+    int cant_jugadores_que_ya_saben_mas_cercano = 0;
+    mutex equipo_coordinacion_mutex;
+    sem_t equipo_coordinacion_sem;
+    sem_t equipo_mas_cercano_sem;
+    vector<sem_t> rr_coordinacion_sem;
 
     // Métodos privados
     direccion apuntar_a(coordenadas pos2, coordenadas pos1);

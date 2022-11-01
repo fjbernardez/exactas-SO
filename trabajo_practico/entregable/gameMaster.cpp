@@ -94,8 +94,7 @@ void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos
 
 int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
 
-    // Que no se puedan mover 2 jugadores a la vez
-    moviendo_jugador.lock();
+
     coordenadas actual_pos;
     if (turno == AZUL) {
         actual_pos = pos_jugadores_azules[nro_jugador];
@@ -103,8 +102,11 @@ int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
         actual_pos = pos_jugadores_rojos[nro_jugador];
     }
     coordenadas apuntada_pos = proxima_posicion(actual_pos, dir);
+
     // Chequear que la movida sea valida
     assert(es_posicion_valida(apuntada_pos));
+    // Que no se puedan mover 2 jugadores a la vez
+    moviendo_jugador.lock();
     // Inicio Critica
     color apuntado_color = en_posicion(apuntada_pos);
     if(!termino_juego()){
