@@ -97,13 +97,13 @@ void Equipo::jugador(int nro_jugador) {
                 equipo_coordinacion_mutex.lock();
                 cant_jugadores_listos_para_jugar++;
                 if (cant_jugadores_listos_para_jugar == cant_jugadores){
-                    cant_jugadores_listos_para_jugar = 0;
+
                     for (int i = 0; i < cant_jugadores; ++i) {
                         sem_post(&equipo_coordinacion_sem_entrada);
                     }
                     //Le habilitamos el semaforo al primer jugador de la ronda
-                    cout << "voy a desperar a " << 0<< endl;
                     sem_post(&rr_coordinacion_sem[0]);
+                    cant_jugadores_listos_para_jugar = 0;
                 }
                 equipo_coordinacion_mutex.unlock();
                 sem_wait(&equipo_coordinacion_sem_entrada);
@@ -117,20 +117,16 @@ void Equipo::jugador(int nro_jugador) {
 
                     //Aca se esperaría que haya solo un jugador por vez..
                     // .. no debería ser necesario el mutex
+
                     equipo_coordinacion_mutex.lock();
                     quantum_que_habra_cuando_me_toque = quantum_restante - cant_jugadores;
                     nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
 
                     quantum_restante--;
 
-                    cout <<"Soy jugador: " <<nro_jugador <<endl;
-                    cout <<"Del equipo: " << equipo << endl;
-                    cout <<"Cuando me toque de nuevo habra: "<< quantum_que_habra_cuando_me_toque << endl;
-                    cout <<"Ahora quedan: "<< quantum_restante << endl;
-
                     //Si queda quantum, hay un proximo jugadores esperando a que lo despierte
                     if(quantum_restante > 0){
-                        cout << "voy a desperar a " << (nro_jugador + 1) % cant_jugadores<< endl;
+
                         sem_post(&rr_coordinacion_sem[(nro_jugador + 1) % cant_jugadores]);
                     }
                     equipo_coordinacion_mutex.unlock();
@@ -142,11 +138,11 @@ void Equipo::jugador(int nro_jugador) {
                 if (cant_jugadores_que_ya_jugaron == cant_jugadores){
                     //belcebu le va a dar permisos al proximo equipo;
                     quantum_restante = quantum;
-                    cant_jugadores_que_ya_jugaron = 0;
                     belcebu->termino_ronda(equipo);
                     for (int i = 0; i < cant_jugadores; ++i) {
                         sem_post(&equipo_coordinacion_sem_salida);
                     }
+                    cant_jugadores_que_ya_jugaron = 0;
                 }
                 equipo_coordinacion_mutex.unlock();
                 sem_wait(&equipo_coordinacion_sem_salida);
