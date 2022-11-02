@@ -93,56 +93,39 @@ void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos
 
 
 int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
-
-
-    coordenadas actual_pos;
+    moviendo_jugador.lock();
+    cout<< "Soy el jugador " << nro_jugador << " del equipo " << turno << " y me acabo de mover "<< endl;
+    moviendo_jugador.unlock();
+    return 0;
+    /*coordenadas actual_pos;
     if (turno == AZUL) {
         actual_pos = pos_jugadores_azules[nro_jugador];
     } else {
         actual_pos = pos_jugadores_rojos[nro_jugador];
     }
     coordenadas apuntada_pos = proxima_posicion(actual_pos, dir);
-
     // Chequear que la movida sea valida
     assert(es_posicion_valida(apuntada_pos));
     // Que no se puedan mover 2 jugadores a la vez
     moviendo_jugador.lock();
     // Inicio Critica
     color apuntado_color = en_posicion(apuntada_pos);
-    if(!termino_juego()){
-        if (es_color_libre(apuntado_color)) {
-            mover_jugador_tablero(actual_pos, apuntada_pos, turno);
-            if (turno == AZUL) {
-                pos_jugadores_azules[nro_jugador] = apuntada_pos;
-            } else {
-                pos_jugadores_rojos[nro_jugador] = apuntada_pos;
-            }
-            cout << "MOVI A JUGADOR NUMERO " << nro_jugador<< " DEL EQUIPO " << turno;
-            cout << " DE LA POSICION "  << actual_pos.first << " " << actual_pos.second << " A LA POSICION " << apuntada_pos.first << " " << apuntada_pos.second <<endl;
-
-        } else if (((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) ||
-                   ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
-            mover_jugador_tablero(actual_pos, apuntada_pos, turno);
-            if (turno == AZUL) {
-                pos_jugadores_azules[nro_jugador] = apuntada_pos;
-            } else {
-                pos_jugadores_rojos[nro_jugador] = apuntada_pos;
-            }
-            // setear la variable ganador
-            cout << "GANO EL EQUIPO " << turno << endl;
-            ganador = turno;
-            nro_ronda = 0;
-        } else {
-            // Devolver -1 simboliza que el jugador quizo moverse a un lugar y estaba ocupado
-            moviendo_jugador.unlock();
-            return -1;
-        }
+    if (es_color_libre(apuntado_color)) {
+        mover_jugador_tablero(actual_pos, apuntada_pos, turno);
+    } else if (((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) ||
+               ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
+        mover_jugador_tablero(actual_pos, apuntada_pos, turno);
+        // setear la variable ganador
+        ganador = turno;
+        nro_ronda = 0;
+    } else {
+        // Devolver -1 simboliza que el jugador quizo moverse a un lugar y estaba ocupado
+        return -1;
     }
     // Fin Critica
     moviendo_jugador.unlock();
     // Devolver acorde a la descripción
-    return nro_ronda;
-
+    return nro_ronda;*/
 }
 
 
@@ -150,30 +133,23 @@ void gameMaster::termino_ronda(color equipo) {
     // FIXME: Hacer chequeo de que es el color correcto que está llamando
     // FIXME: Hacer chequeo que hayan terminado todos los jugadores del equipo o su quantum (via mover_jugador)
     // Hacer esto luego de checkear lo de arriba
+    terminando_ronda.lock();
+    if(equipo == turno){
+        nro_ronda++;
+        turno = (turno == ROJO) ? AZUL : ROJO;
+        if(turno == ROJO){
 
-    assert(equipo == turno);
-    cout << "TERMINO EL EQUIPO " << turno << endl;
-    nro_ronda++;
-    turno = (turno == ROJO) ? AZUL : ROJO;
-    cout << "AHORA LE TOCA AL EQUIPO " << turno << endl;
-    switch (this->strat) {
-        case SECUENCIAL:
             for (int i = 0; i < jugadores_por_equipos; ++i) {
-                if(turno== ROJO){
-                    sem_post(&turno_rojo);
-                }
-                else{
-                    sem_post(&turno_azul);
-                }
+                sem_post(&turno_rojo);
             }
-        case RR:
-
-            break;
-        case SHORTEST:
-            break;
-        case USTEDES:
-            break;
+        }
+        else{
+            for (int i = 0; i < jugadores_por_equipos; ++i) {
+                sem_post(&turno_azul);
+            }
+        }
     }
+    terminando_ronda.unlock();
 }
 
 bool gameMaster::termino_juego() {
@@ -203,20 +179,12 @@ coordenadas gameMaster::proxima_posicion(coordenadas anterior, direccion movimie
 }
 
 void gameMaster::comenzar_partida(){
-    sem_init(&turno_rojo,0,0);
-    sem_init(&turno_azul,0,0);
-    switch (this->strat) {
-        case SECUENCIAL:
-            //Empiezar los rojos
-            for (int i = 0; i < jugadores_por_equipos; ++i) {
-                sem_post(&turno_rojo);
-            }
-        case RR:
-            break;
-        case SHORTEST:
-            break;
-        case USTEDES:
-            break;
+    sem_init(&turno_rojo,1,0);
+    sem_init(&turno_azul,1,0);
+
+    //Empiezan los rojos
+    for (int i = 0; i < jugadores_por_equipos; ++i) {
+        sem_post(&turno_rojo);
     }
 }
 

@@ -15,12 +15,14 @@ void Equipo::jugador(int nro_jugador) {
     // ...
     //
 
+    //Aca deberían hacer lo de buscar bandera
+
     while (!this->belcebu->termino_juego()) { // Chequear que no haya una race condition en gameMaster
 
         // Numero de intento puede ser algo para que el jugador decida donde moverse si..
         //.. fue bloqueado la primera vez
         int nro_intento = -1;
-        int nro_ronda = -1;      
+        int nro_ronda = -1;
 
         //La idea es que todos los jugadores se quedan esperando a que belcebu les de..
         //.. permisos para jugar cuando sea su turno, el equipo rojo ya comienza con permisos para sus jugadores
@@ -38,8 +40,6 @@ void Equipo::jugador(int nro_jugador) {
                 // ...
                 //
 
-
-
                 //Moverse
                 /*nro_intento = -1;
                 nro_ronda = -1;
@@ -55,23 +55,34 @@ void Equipo::jugador(int nro_jugador) {
                         dir_a_mover = (nro_intento == 0) ? IZQUIERDA : ABAJO;
                     }
                     //nro_ronda devuelve -1 si el lugar al que se quizo mover estaba bloqueado
-                    nro_ronda = belcebu->mover_jugador(dir_a_mover, nro_jugador);
-                }*/
 
+                }*/
+                equipo_coordinacion_mutex.lock();
+                cant_jugadores_que_ya_jugaron++;
+                if (cant_jugadores_que_ya_jugaron == cant_jugadores){
+                    cant_jugadores_que_ya_jugaron = 0;
+                    for (int i = 0; i < cant_jugadores; ++i) {
+                        sem_post(&equipo_coordinacion_sem_entrada);
+                    }
+                }
+                equipo_coordinacion_mutex.unlock();
+
+                sem_wait(&equipo_coordinacion_sem_entrada);
+
+                nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
 
                 equipo_coordinacion_mutex.lock();
                 cant_jugadores_que_ya_jugaron++;
                 if (cant_jugadores_que_ya_jugaron == cant_jugadores){
                     //belcebu le va a dar permisos al proximo equipo;
-                    cant_jugadores_que_ya_jugaron = 0;
                     belcebu->termino_ronda(equipo);
+                    cant_jugadores_que_ya_jugaron = 0;
                     for (int i = 0; i < cant_jugadores; ++i) {
-                        sem_post(&equipo_coordinacion_sem);
+                        sem_post(&equipo_coordinacion_sem_salida);
                     }
                 }
                 equipo_coordinacion_mutex.unlock();
-
-                sem_wait(&equipo_coordinacion_sem);
+                sem_wait(&equipo_coordinacion_sem_salida);
 
                 break;
 
@@ -84,7 +95,7 @@ void Equipo::jugador(int nro_jugador) {
                 sem_wait(&rr_coordinacion_sem[nro_jugador]);
 
                 //Se mueve o intenta mover adonde pueda
-
+                nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
                 //Si el Quantum_restante es cero, llama a terminar turno y le de permiso al PRIMER jugador, preparando para la proxima ronda..
                 //.. resetea quatum restante a quantum
                 quantum_restante--;
@@ -136,11 +147,11 @@ void Equipo::jugador(int nro_jugador) {
 
                     cant_jugadores_que_ya_jugaron = 0;
                     for (int i = 0; i < cant_jugadores; ++i) {
-                        sem_post(&equipo_coordinacion_sem);
+                        sem_post(&equipo_coordinacion_sem_salida);
                     }
                 }
                 equipo_coordinacion_mutex.unlock();
-                sem_wait(&equipo_coordinacion_sem);
+                sem_wait(&equipo_coordinacion_sem_salida);
 
 
                 break;
@@ -186,7 +197,8 @@ void Equipo::comenzar() {
     //Se puede separar las inicializacion de sem_t con un switch case por strategia, pero no es 100% necesario
 
     //Se usa en Secuencial y Shortest
-    sem_init(&equipo_coordinacion_sem, 0, 0);
+    sem_init(&equipo_coordinacion_sem_salida, 0, 0);
+    sem_init(&equipo_coordinacion_sem_entrada, 0, 0);
     //Se usa en Shortest
     sem_init(&equipo_mas_cercano_sem, 0, 0);
     //Se usan en RR
@@ -205,6 +217,9 @@ void Equipo::terminar() {
     for (auto &t: jugadores) {
         t.join();
     }
+    //Se usa en Secuencial y Shortest
+    sem_close(&equipo_coordinacion_sem_salida);
+    sem_close(&equipo_mas_cercano_sem);
 }
 
 coordenadas Equipo::buscar_bandera_contraria() {

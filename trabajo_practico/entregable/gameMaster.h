@@ -23,6 +23,7 @@ private:
     estrategia strat;
     //...
     mutex moviendo_jugador;
+    mutex terminando_ronda;
 
     // Métodos privados
     color obtener_coordenadas(coordenadas coord);
@@ -53,7 +54,7 @@ public:
 
     static int distancia(coordenadas pair1, coordenadas pair2);
 
-    sem_t turno_rojo, turno_azul; // FIXME: Al principio necesito entrar como azul, luego puedo hacerlo por el método termino_ronda....
+    sem_t turno_rojo, turno_azul;
     color en_posicion(coordenadas coord);
 
     bool es_posicion_valida(coordenadas pos);
