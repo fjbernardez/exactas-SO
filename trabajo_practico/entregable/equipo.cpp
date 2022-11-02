@@ -23,7 +23,7 @@ void Equipo::jugador(int nro_jugador) {
         //.. fue bloqueado la primera vez
         int nro_intento = -1;
         int nro_ronda = -1;
-
+        int quantum_que_habra_cuando_me_toque;
         //La idea es que todos los jugadores se quedan esperando a que belcebu les de..
         //.. permisos para jugar cuando sea su turno, el equipo rojo ya comienza con permisos para sus jugadores
         if (equipo == AZUL){
@@ -57,29 +57,31 @@ void Equipo::jugador(int nro_jugador) {
                     //nro_ronda devuelve -1 si el lugar al que se quizo mover estaba bloqueado
 
                 }*/
+
+                //Nos aseguramos que todos los jugadores del turno actual esten para comenzar a moverse
                 equipo_coordinacion_mutex.lock();
-                cant_jugadores_que_ya_jugaron++;
-                if (cant_jugadores_que_ya_jugaron == cant_jugadores){
-                    cant_jugadores_que_ya_jugaron = 0;
+                cant_jugadores_listos_para_jugar++;
+                if (cant_jugadores_listos_para_jugar == cant_jugadores){
+                    cant_jugadores_listos_para_jugar = 0;
                     for (int i = 0; i < cant_jugadores; ++i) {
                         sem_post(&equipo_coordinacion_sem_entrada);
                     }
                 }
                 equipo_coordinacion_mutex.unlock();
-
                 sem_wait(&equipo_coordinacion_sem_entrada);
 
                 nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
 
+                //Si todos movieron, terminamos turno
                 equipo_coordinacion_mutex.lock();
                 cant_jugadores_que_ya_jugaron++;
                 if (cant_jugadores_que_ya_jugaron == cant_jugadores){
                     //belcebu le va a dar permisos al proximo equipo;
-                    belcebu->termino_ronda(equipo);
                     cant_jugadores_que_ya_jugaron = 0;
                     for (int i = 0; i < cant_jugadores; ++i) {
                         sem_post(&equipo_coordinacion_sem_salida);
                     }
+                    belcebu->termino_ronda(equipo);
                 }
                 equipo_coordinacion_mutex.unlock();
                 sem_wait(&equipo_coordinacion_sem_salida);
@@ -91,23 +93,63 @@ void Equipo::jugador(int nro_jugador) {
                 // ...
                 //
 
-                //El array_de_mutex se inicializa en equipo.comienza, y le da al primer jugador permiso
-                sem_wait(&rr_coordinacion_sem[nro_jugador]);
-
-                //Se mueve o intenta mover adonde pueda
-                nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
-                //Si el Quantum_restante es cero, llama a terminar turno y le de permiso al PRIMER jugador, preparando para la proxima ronda..
-                //.. resetea quatum restante a quantum
-                quantum_restante--;
-                if(quantum_restante == 0){
-                    quantum_restante = quantum;
-                    belcebu->termino_ronda(equipo);
+                //Nos aseguramos que todos los jugadores esten listos para jugar
+                equipo_coordinacion_mutex.lock();
+                cant_jugadores_listos_para_jugar++;
+                if (cant_jugadores_listos_para_jugar == cant_jugadores){
+                    cant_jugadores_listos_para_jugar = 0;
+                    for (int i = 0; i < cant_jugadores; ++i) {
+                        sem_post(&equipo_coordinacion_sem_entrada);
+                    }
+                    //Le habilitamos el semaforo al primer jugador de la ronda
+                    cout << "voy a desperar a " << 0<< endl;
                     sem_post(&rr_coordinacion_sem[0]);
                 }
-                else{
-                    //Si el Quantum_restante es mayor que cero, le da permiso al SIGUIENTE jugador
-                    sem_post(&rr_coordinacion_sem[(nro_jugador+1)%cant_jugadores]);
+                equipo_coordinacion_mutex.unlock();
+                sem_wait(&equipo_coordinacion_sem_entrada);
+
+                //Si cuando le toque de nuevo al jugador hay quantum positivo, va a moverse, sino no
+                quantum_que_habra_cuando_me_toque = quantum - nro_jugador;
+
+                while(quantum_que_habra_cuando_me_toque > 0) {
+                    //El array_de_sem se inicializa en equipo.comienza
+                    sem_wait(&rr_coordinacion_sem[nro_jugador]);
+
+                    //Aca se esperaría que haya solo un jugador por vez..
+                    // .. no debería ser necesario el mutex
+                    equipo_coordinacion_mutex.lock();
+                    quantum_que_habra_cuando_me_toque = quantum_restante - cant_jugadores;
+                    nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
+
+                    quantum_restante--;
+
+                    cout <<"Soy jugador: " <<nro_jugador <<endl;
+                    cout <<"Del equipo: " << equipo << endl;
+                    cout <<"Cuando me toque de nuevo habra: "<< quantum_que_habra_cuando_me_toque << endl;
+                    cout <<"Ahora quedan: "<< quantum_restante << endl;
+
+                    //Si queda quantum, hay un proximo jugadores esperando a que lo despierte
+                    if(quantum_restante > 0){
+                        cout << "voy a desperar a " << (nro_jugador + 1) % cant_jugadores<< endl;
+                        sem_post(&rr_coordinacion_sem[(nro_jugador + 1) % cant_jugadores]);
+                    }
+                    equipo_coordinacion_mutex.unlock();
+
                 }
+
+                equipo_coordinacion_mutex.lock();
+                cant_jugadores_que_ya_jugaron++;
+                if (cant_jugadores_que_ya_jugaron == cant_jugadores){
+                    //belcebu le va a dar permisos al proximo equipo;
+                    quantum_restante = quantum;
+                    cant_jugadores_que_ya_jugaron = 0;
+                    belcebu->termino_ronda(equipo);
+                    for (int i = 0; i < cant_jugadores; ++i) {
+                        sem_post(&equipo_coordinacion_sem_salida);
+                    }
+                }
+                equipo_coordinacion_mutex.unlock();
+                sem_wait(&equipo_coordinacion_sem_salida);
                 break;
 
             case (SHORTEST):
@@ -125,10 +167,10 @@ void Equipo::jugador(int nro_jugador) {
 
                 //nro_jugador_cercano = jugador_mas_cercano();
                 equipo_coordinacion_mutex.lock();
-                cant_jugadores_que_ya_saben_mas_cercano++;
-                if (cant_jugadores_que_ya_saben_mas_cercano == cant_jugadores){
+                cant_jugadores_listos_para_jugar++;
+                if (cant_jugadores_listos_para_jugar == cant_jugadores){
                     //belcebu le va a dar permisos al proximo equipo;
-                    cant_jugadores_que_ya_saben_mas_cercano = 0;
+                    cant_jugadores_listos_para_jugar = 0;
                     for (int i = 0; i < cant_jugadores; ++i) {
                         sem_post(&equipo_mas_cercano_sem);
                     }
@@ -205,7 +247,7 @@ void Equipo::comenzar() {
     for (int i = 0; i < cant_jugadores; ++i) {
         sem_init(&rr_coordinacion_sem[i], 0, 0);
     }
-    sem_post(&rr_coordinacion_sem[0]);
+
 
     // Creamos los jugadores
     for (int i = 0; i < cant_jugadores; i++) {
@@ -220,6 +262,10 @@ void Equipo::terminar() {
     //Se usa en Secuencial y Shortest
     sem_close(&equipo_coordinacion_sem_salida);
     sem_close(&equipo_mas_cercano_sem);
+    for (int i = 0; i < cant_jugadores; ++i) {
+        sem_close(&rr_coordinacion_sem[i]);
+    }
+    sem_close(&equipo_coordinacion_sem_entrada);
 }
 
 coordenadas Equipo::buscar_bandera_contraria() {

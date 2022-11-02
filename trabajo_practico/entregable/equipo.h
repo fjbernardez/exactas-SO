@@ -24,7 +24,7 @@ private:
     //
     // ...
     //
-    int cant_jugadores_que_ya_saben_mas_cercano = 0;
+    int cant_jugadores_listos_para_jugar = 0;
     mutex equipo_coordinacion_mutex;
     sem_t equipo_coordinacion_sem_salida;
     sem_t equipo_coordinacion_sem_entrada;

@@ -93,9 +93,9 @@ void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos
 
 
 int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
-    moviendo_jugador.lock();
-    cout<< "Soy el jugador " << nro_jugador << " del equipo " << turno << " y me acabo de mover "<< endl;
-    moviendo_jugador.unlock();
+    //moviendo_jugador.lock();
+    //cout<< "Soy el jugador " << nro_jugador << " del equipo " << turno << " y me acabo de mover "<< endl;
+    //moviendo_jugador.unlock();
     return 0;
     /*coordenadas actual_pos;
     if (turno == AZUL) {
@@ -179,8 +179,8 @@ coordenadas gameMaster::proxima_posicion(coordenadas anterior, direccion movimie
 }
 
 void gameMaster::comenzar_partida(){
-    sem_init(&turno_rojo,1,0);
-    sem_init(&turno_azul,1,0);
+    sem_init(&turno_rojo,0,0);
+    sem_init(&turno_azul,0,0);
 
     //Empiezan los rojos
     for (int i = 0; i < jugadores_por_equipos; ++i) {
