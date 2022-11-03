@@ -15,7 +15,18 @@ void Equipo::jugador(int nro_jugador) {
     // ...
     //
 
+
     //Aca deberían hacer lo de buscar bandera
+    coordenadas pos_bandera_encontrada = buscar_bandera_contraria(nro_jugador);
+    equipo_coordinacion_mutex.lock();
+    cant_jugadores_ya_saben_bandera++;
+    if (cant_jugadores_ya_saben_bandera == cant_jugadores){
+        for (int i = 0; i < cant_jugadores; ++i) {
+            sem_post(&equipo_coordinacion_sem_bandera);
+        }
+    }
+    equipo_coordinacion_mutex.unlock();
+    sem_wait(&equipo_coordinacion_sem_bandera);
 
     while (!this->belcebu->termino_juego()) { // Chequear que no haya una race condition en gameMaster
 
@@ -24,6 +35,7 @@ void Equipo::jugador(int nro_jugador) {
         int nro_intento = -1;
         int nro_ronda = -1;
         int quantum_que_habra_cuando_me_toque;
+        int nro_jugador_cercano;
         //La idea es que todos los jugadores se quedan esperando a que belcebu les de..
         //.. permisos para jugar cuando sea su turno, el equipo rojo ya comienza con permisos para sus jugadores
         if (equipo == AZUL){
@@ -161,32 +173,32 @@ void Equipo::jugador(int nro_jugador) {
                 //.. al principio del turno, va primero el thread que est más cerca por alguna razon se mueve alejandose de la bandera..
                 //.. luego viene el que estaba empayado ahora es el más cercano y se mueve tambien, hay dos movimientos en un turno
 
-                //nro_jugador_cercano = jugador_mas_cercano();
+                //nro_jugador_cercano se debe hacer funcion que compare con donde esta la bandera
+                nro_jugador_cercano = 0;
                 equipo_coordinacion_mutex.lock();
                 cant_jugadores_listos_para_jugar++;
                 if (cant_jugadores_listos_para_jugar == cant_jugadores){
-                    //belcebu le va a dar permisos al proximo equipo;
-                    cant_jugadores_listos_para_jugar = 0;
                     for (int i = 0; i < cant_jugadores; ++i) {
-                        sem_post(&equipo_mas_cercano_sem);
+                        sem_post(&equipo_coordinacion_sem_entrada);
                     }
+                    cant_jugadores_listos_para_jugar = 0;
                 }
                 equipo_coordinacion_mutex.unlock();
-                sem_wait(&equipo_mas_cercano_sem);
+                sem_wait(&equipo_coordinacion_sem_entrada);
 
-                //if(nro_jugador == nro_jugador_cercano()){
-                    // Moverse
-                    // belcebu->termino_ronda(equipo);
-                //}
+
+                if(nro_jugador == nro_jugador_cercano){
+                    nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
+                }
 
                 equipo_coordinacion_mutex.lock();
                 cant_jugadores_que_ya_jugaron++;
                 if (cant_jugadores_que_ya_jugaron == cant_jugadores){
-
-                    cant_jugadores_que_ya_jugaron = 0;
                     for (int i = 0; i < cant_jugadores; ++i) {
                         sem_post(&equipo_coordinacion_sem_salida);
                     }
+                    belcebu->termino_ronda(equipo);
+                    cant_jugadores_que_ya_jugaron = 0;
                 }
                 equipo_coordinacion_mutex.unlock();
                 sem_wait(&equipo_coordinacion_sem_salida);
@@ -231,14 +243,13 @@ Equipo::Equipo(gameMaster *belcebu, color equipo,
 
 void Equipo::comenzar() {
     //...
-
+    tam_X = belcebu->getTamx();
+    tam_Y = belcebu->getTamy();
+    pos_bandera_contraria = make_pair(-1,-1);
     //Se puede separar las inicializacion de sem_t con un switch case por strategia, pero no es 100% necesario
-
-    //Se usa en Secuencial y Shortest
-    sem_init(&equipo_coordinacion_sem_salida, 0, 0);
     sem_init(&equipo_coordinacion_sem_entrada, 0, 0);
-    //Se usa en Shortest
-    sem_init(&equipo_mas_cercano_sem, 0, 0);
+    sem_init(&equipo_coordinacion_sem_salida, 0, 0);
+    sem_init(&equipo_coordinacion_sem_bandera, 0, 0);
     //Se usan en RR
     for (int i = 0; i < cant_jugadores; ++i) {
         sem_init(&rr_coordinacion_sem[i], 0, 0);
@@ -255,17 +266,73 @@ void Equipo::terminar() {
     for (auto &t: jugadores) {
         t.join();
     }
-    //Se usa en Secuencial y Shortest
+    sem_close(&equipo_coordinacion_sem_entrada);
     sem_close(&equipo_coordinacion_sem_salida);
-    sem_close(&equipo_mas_cercano_sem);
+    sem_close(&equipo_coordinacion_sem_bandera);
+
     for (int i = 0; i < cant_jugadores; ++i) {
         sem_close(&rr_coordinacion_sem[i]);
     }
-    sem_close(&equipo_coordinacion_sem_entrada);
 }
 
-coordenadas Equipo::buscar_bandera_contraria() {
+coordenadas Equipo::buscar_bandera_contraria(int nro_jugador) {
     //
     // ...
     //
+
+    //Version distribuida
+    int i = nro_jugador+1;
+    bool no_se_encontro = true;
+    while(no_se_encontro && i <tam_Y){
+        coordenadas pos_mirando;
+        if(equipo==ROJO){
+            pos_mirando =make_pair(99,i);
+        }
+        else{
+            pos_mirando =make_pair(1,i);
+        }
+        color color_mirando = belcebu->en_posicion(pos_mirando);
+        if(color_mirando == bandera_contraria){
+            //Creo que aca frenaria el clock time
+            pos_bandera_contraria = pos_mirando;
+        }
+        equipo_coordinacion_mutex.lock();
+        no_se_encontro = (pos_bandera_contraria == make_pair(-1,-1));
+        equipo_coordinacion_mutex.unlock();
+        i+= cant_jugadores;
+    }
+    return pos_bandera_contraria;
+
+    //Version no distribuida
+    /*
+     *
+    buscar_bandera_i; TIENE QUE SER VARIABLE COMPARTIDA POR EL EQUIPO INICIALIZADO EN 0
+    bool no_se_encontro = true;
+    equipo_coordinacion_mutex.lock();
+    buscar_bandera_i ++;
+    int i = buscar_bandera;
+    equipo_coordinacion_mutex.unlock();
+
+    while(no_se_encontro && i <tam_Y){
+        coordenadas pos_mirando;
+        if(equipo==ROJO){
+            pos_mirando =make_pair(99,i);
+        }
+        else{
+            pos_mirando =make_pair(1,i);
+        }
+        color color_mirando = belcebu->en_posicion(pos_mirando);
+        if(color_mirando == bandera_contraria){
+            equipo_coordinacion_mutex.lock();
+            pos_bandera_contraria = pos_mirando;
+            equipo_coordinacion_mutex.unlock();
+        }
+        equipo_coordinacion_mutex.lock();
+        no_se_encontro = (pos_bandera_contraria == make_pair(-1,-1));
+        buscar_bandera_i ++;
+        i = buscar_bandera;
+        equipo_coordinacion_mutex.unlock();
+    }
+    return pos_bandera_contraria;
+     */
 }

@@ -94,7 +94,7 @@ void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos
 
 int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
     moviendo_jugador.lock();
-    cout<< "Soy el jugador " << nro_jugador << " del equipo " << turno << " y me acabo de mover "<< endl;
+    cout<< "Soy el jugador " << nro_jugador << " del equipo " << turno << " y me acabo de mover en la ronda "<< nro_ronda <<endl;
     moviendo_jugador.unlock();
     return 0;
     /*coordenadas actual_pos;
