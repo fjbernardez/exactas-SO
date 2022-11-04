@@ -33,6 +33,7 @@ int main() {
 
 
     cout << "Bandera capturada por el equipo " << belcebu.ganador << ". Felicidades!" << endl;
+    belcebu.finalizar_partida();
 
 }
 

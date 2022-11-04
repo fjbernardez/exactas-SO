@@ -186,5 +186,9 @@ void gameMaster::comenzar_partida(){
         sem_post(&turno_rojo);
     }
 }
+void gameMaster::finalizar_partida(){
+    sem_destroy(&turno_rojo);
+    sem_destroy(&turno_azul);
+}
 
 

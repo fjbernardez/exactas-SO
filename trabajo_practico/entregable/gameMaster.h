@@ -66,6 +66,7 @@ public:
     //...
     //
     void comenzar_partida();
+    void finalizar_partida();
 };
 
 #endif // GAMEMASTER_H

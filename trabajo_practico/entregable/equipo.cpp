@@ -39,10 +39,10 @@ void Equipo::jugador(int nro_jugador) {
         //La idea es que todos los jugadores se quedan esperando a que belcebu les de..
         //.. permisos para jugar cuando sea su turno, el equipo rojo ya comienza con permisos para sus jugadores
         if (equipo == AZUL){
-            sem_wait(&belcebu->turno_azul);
+            sem_wait(&this->belcebu->turno_azul);
         }
         else{
-            sem_wait(&belcebu->turno_rojo);
+            sem_wait(&this->belcebu->turno_rojo);
         }
 
         switch (this->strat) {
@@ -82,7 +82,7 @@ void Equipo::jugador(int nro_jugador) {
                 equipo_coordinacion_mutex.unlock();
                 sem_wait(&equipo_coordinacion_sem_entrada);
 
-                nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
+                nro_ronda = this->belcebu->mover_jugador(DERECHA, nro_jugador);
 
                 //Si todos movieron, terminamos turno
                 equipo_coordinacion_mutex.lock();
@@ -93,7 +93,7 @@ void Equipo::jugador(int nro_jugador) {
                     for (int i = 0; i < cant_jugadores; ++i) {
                         sem_post(&equipo_coordinacion_sem_salida);
                     }
-                    belcebu->termino_ronda(equipo);
+                    this->belcebu->termino_ronda(equipo);
                 }
                 equipo_coordinacion_mutex.unlock();
                 sem_wait(&equipo_coordinacion_sem_salida);
@@ -266,12 +266,12 @@ void Equipo::terminar() {
     for (auto &t: jugadores) {
         t.join();
     }
-    sem_close(&equipo_coordinacion_sem_entrada);
-    sem_close(&equipo_coordinacion_sem_salida);
-    sem_close(&equipo_coordinacion_sem_bandera);
+    sem_destroy(&equipo_coordinacion_sem_entrada);
+    sem_destroy(&equipo_coordinacion_sem_salida);
+    sem_destroy(&equipo_coordinacion_sem_bandera);
 
     for (int i = 0; i < cant_jugadores; ++i) {
-        sem_close(&rr_coordinacion_sem[i]);
+        sem_destroy(&rr_coordinacion_sem[i]);
     }
 }
 
