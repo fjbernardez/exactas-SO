@@ -12,6 +12,7 @@ using namespace std;
 
 const estrategia strat = RR;
 const int quantum = 10;
+const int busqueda_distribuida = true;
 
 int main() {
     Config config = *(new Config());
@@ -21,8 +22,8 @@ int main() {
 
 
     // Creo equipos (lanza procesos)
-    Equipo rojo(&belcebu, ROJO, strat, config.cantidad_jugadores, quantum, config.pos_rojo);
-    Equipo azul(&belcebu, AZUL, strat, config.cantidad_jugadores, quantum, config.pos_azul);
+    Equipo rojo(&belcebu, ROJO, strat, config.cantidad_jugadores, quantum, config.pos_rojo,busqueda_distribuida);
+    Equipo azul(&belcebu, AZUL, strat, config.cantidad_jugadores, quantum, config.pos_azul,busqueda_distribuida);
 
     rojo.comenzar();
     azul.comenzar();

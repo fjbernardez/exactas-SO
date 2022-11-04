@@ -1,5 +1,6 @@
 #include "equipo.h"
 #include <assert.h>
+#include <time.h>
 
 direccion Equipo::apuntar_a(coordenadas pos1, coordenadas pos2) {
     assert(pos1 != pos2);
@@ -14,10 +15,7 @@ void Equipo::jugador(int nro_jugador) {
     //
     // ...
     //
-
-
-    //Aca deberían hacer lo de buscar bandera
-    //Hay barrera para asegurarse que todos los jugadores saben la posicion de antes de comenzar a moverse..
+    //Hay barrera para asegurarse que todos los jugadores saben donde esta la bandera de antes de comenzar a moverse..
     //.. ya que algunos jugadores pueden terminar buscar_bandera_contraria sin saber donde esta
     coordenadas pos_bandera_encontrada = buscar_bandera_contraria(nro_jugador);
     equipo_coordinacion_mutex.lock();
@@ -85,7 +83,7 @@ void Equipo::jugador(int nro_jugador) {
 }
 
 Equipo::Equipo(gameMaster *belcebu, color equipo,
-               estrategia strat, int cant_jugadores, int quantum, vector<coordenadas> posiciones) {
+               estrategia strat, int cant_jugadores, int quantum, vector<coordenadas> posiciones,bool busqueda_distribuida) {
     this->belcebu = belcebu;
     this->equipo = equipo;
     this->contrario = (equipo == ROJO) ? AZUL : ROJO;
@@ -98,7 +96,7 @@ Equipo::Equipo(gameMaster *belcebu, color equipo,
     //
     // ...
     //
-
+    this->busqueda_distribuida = busqueda_distribuida;
     this->rr_coordinacion_sem = vector<sem_t> (cant_jugadores);
 }
 
@@ -115,6 +113,8 @@ void Equipo::comenzar() {
     for (int i = 0; i < cant_jugadores; ++i) {
         sem_init(&rr_coordinacion_sem[i], 0, 0);
     }
+    start.tv_nsec = 0;
+    start.tv_sec = 0;
     // Creamos los jugadores
     for (int i = 0; i < cant_jugadores; i++) {
         jugadores.emplace_back(thread(&Equipo::jugador, this, i));
@@ -138,60 +138,77 @@ coordenadas Equipo::buscar_bandera_contraria(int nro_jugador) {
     //
     // ...
     //
-
-    //Version distribuida equitativamente
-    int i = nro_jugador+1;
-    bool no_se_encontro = true;
-    while(no_se_encontro && i <tam_Y){
-        coordenadas pos_mirando;
-        if(equipo==ROJO){
-            pos_mirando =make_pair(99,i);
-        }
-        else{
-            pos_mirando =make_pair(1,i);
-        }
-        color color_mirando = belcebu->en_posicion(pos_mirando);
-        if(color_mirando == bandera_contraria){
-            //Creo que aca frenaria el clock time
-            pos_bandera_contraria = pos_mirando;
-        }
-        equipo_coordinacion_mutex.lock();
-        no_se_encontro = (pos_bandera_contraria == make_pair(-1,-1));
-        equipo_coordinacion_mutex.unlock();
-        i+= cant_jugadores;
+    clock_coordinacion_mutex.lock();
+    if(start.tv_sec == 0 && start.tv_nsec == 0){
+        clock_gettime(CLOCK_REALTIME,&start);
     }
-    return pos_bandera_contraria;
-
-    //Version no distribuida
-    /*
-     *
-    buscar_bandera_i; TIENE QUE SER VARIABLE COMPARTIDA POR EL EQUIPO INICIALIZADO EN 0
-    bool no_se_encontro = true;
-    equipo_coordinacion_mutex.lock();
-    buscar_bandera_i ++;
-    int i = buscar_bandera;
-    equipo_coordinacion_mutex.unlock();
-
-    while(no_se_encontro && i <tam_Y){
+    clock_coordinacion_mutex.unlock();
+    //Version distribuida equitativamente, cada jugador revisa una cantidad determinada de casillas
+    if(busqueda_distribuida){
+        int i = nro_jugador+1;
+        bool no_se_encontro = true;
         coordenadas pos_mirando;
-        if(equipo==ROJO){
-            pos_mirando =make_pair(99,i);
-        }
-        else{
-            pos_mirando =make_pair(1,i);
-        }
-        color color_mirando = belcebu->en_posicion(pos_mirando);
-        if(color_mirando == bandera_contraria){
+        color color_mirando;
+        while(no_se_encontro && i <tam_Y){
+
+            if(equipo==ROJO){
+                pos_mirando =make_pair(99,i);
+            }
+            else{
+                pos_mirando =make_pair(1,i);
+            }
+            color_mirando = belcebu->en_posicion(pos_mirando);
+            if(color_mirando == bandera_contraria){
+                equipo_coordinacion_mutex.lock();
+                clock_gettime(CLOCK_REALTIME,&finish);
+
+                cout << "El equipo " << equipo << " encontro la bandera en tiempo " << (finish.tv_sec - start.tv_sec)  << "sec " <<(finish.tv_nsec - start.tv_nsec)  << "nsec en la posicion " << pos_mirando.first << " " << pos_mirando.second << endl;
+                     pos_bandera_contraria = pos_mirando;
+                equipo_coordinacion_mutex.unlock();
+            }
             equipo_coordinacion_mutex.lock();
-            pos_bandera_contraria = pos_mirando;
+            no_se_encontro = (pos_bandera_contraria == make_pair(-1,-1));
+            equipo_coordinacion_mutex.unlock();
+            i+= cant_jugadores;
+        }
+    }
+    //Version no distribuida, van a ir revisando casillas los jugadores que el scheduler decida
+    else{
+        bool no_se_encontro = true;
+        equipo_coordinacion_mutex.lock();
+        buscar_bandera_i ++;
+        int i = buscar_bandera_i;
+        equipo_coordinacion_mutex.unlock();
+        coordenadas pos_mirando;
+        color color_mirando;
+        while(no_se_encontro && i <tam_Y){
+            if(equipo==ROJO){
+                pos_mirando =make_pair(99,i);
+            }
+            else{
+                pos_mirando =make_pair(1,i);
+            }
+            color_mirando = belcebu->en_posicion(pos_mirando);
+            if(color_mirando == bandera_contraria){
+                equipo_coordinacion_mutex.lock();
+                clock_gettime(CLOCK_REALTIME,&finish);
+                pos_bandera_contraria = pos_mirando;
+                equipo_coordinacion_mutex.unlock();
+            }
+            equipo_coordinacion_mutex.lock();
+            no_se_encontro = (pos_bandera_contraria == make_pair(-1,-1));
+            buscar_bandera_i ++;
+            i = buscar_bandera_i;
             equipo_coordinacion_mutex.unlock();
         }
-        equipo_coordinacion_mutex.lock();
-        no_se_encontro = (pos_bandera_contraria == make_pair(-1,-1));
-        buscar_bandera_i ++;
-        i = buscar_bandera;
-        equipo_coordinacion_mutex.unlock();
     }
+
+    return pos_bandera_contraria;
+
+
+    /*
+     *
+
     return pos_bandera_contraria;
      */
 }

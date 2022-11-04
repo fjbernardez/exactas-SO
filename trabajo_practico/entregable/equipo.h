@@ -28,12 +28,15 @@ private:
     int cant_jugadores_ya_saben_bandera = 0;
     int buscar_bandera_i = 0;
     mutex equipo_coordinacion_mutex;
+    mutex clock_coordinacion_mutex;
     sem_t equipo_coordinacion_sem_salida;
     sem_t equipo_coordinacion_sem_entrada;
     sem_t equipo_coordinacion_sem_bandera;
     vector<sem_t> rr_coordinacion_sem;
     int tam_Y;
     int tam_X;
+    bool busqueda_distribuida;
+    struct timespec start, finish;
 
     // Métodos privados
     direccion apuntar_a(coordenadas pos2, coordenadas pos1);
@@ -50,7 +53,7 @@ private:
     void jugar_turno_estrategia_ustedes(int nro_jugador);
 public:
     Equipo(gameMaster *belcebu, color equipo,
-           estrategia strat, int cant_jugadores, int quantum, vector<coordenadas> posiciones);
+           estrategia strat, int cant_jugadores, int quantum, vector<coordenadas> posiciones, bool busqueda_distribuida);
 
     void comenzar();
 
