@@ -10,7 +10,7 @@
 
 using namespace std;
 
-const estrategia strat = SHORTEST;
+const estrategia strat = SECUENCIAL;
 const int quantum = 10;
 const int busqueda_distribuida = true;
 

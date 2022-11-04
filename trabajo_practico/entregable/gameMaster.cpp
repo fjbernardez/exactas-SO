@@ -118,14 +118,11 @@ int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
 
     bool esta_libre = es_color_libre(apuntado_color);
 
-    cout << apuntado_color << endl;
     if (esta_libre){
         //mover_jugador_tablero solo cambia los colores en el tablero
 
         mover_jugador_tablero(actual_pos, apuntada_pos, turno);
         mover_jugador_posiciones(apuntada_pos,nro_jugador,turno);
-        //cout<< "Soy el jugador " << nro_jugador << " del equipo " << turno << " y me acabo de mover en la ronda "<< nro_ronda <<endl;
-        //cout<< "Estoy en pos " << actual_pos.first << " " << actual_pos.second << " y quiero ir a  "<< apuntada_pos.first << " " << apuntada_pos.second <<endl;
 
     }
     else {

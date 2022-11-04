@@ -422,6 +422,10 @@ int Equipo::jugador_moverse(int nro_jugador){
         }
         intento++;
     }
+    equipo_coordinacion_mutex.lock();
+    //Si dice ronda -1 es que no se pudo mover
+    cout<< "Soy el jugador " << nro_jugador << " del equipo " << equipo    << " y me acabo de mover en la ronda "<< nro_ronda <<endl;
+    equipo_coordinacion_mutex.unlock();
     if(nro_ronda >-1){
         //Se pudo mover el jugador, debe actualizar su posicion en el vector de posiciones del equipo
         posiciones[nro_jugador] = probando_coordenada;
