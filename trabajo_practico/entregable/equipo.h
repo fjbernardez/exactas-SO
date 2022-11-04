@@ -51,6 +51,8 @@ private:
     void jugar_turno_estrategia_rr(int nro_jugador);
     void jugar_turno_estrategia_shortest(int nro_jugador);
     void jugar_turno_estrategia_ustedes(int nro_jugador);
+    vector<direccion> mejores_posiciones(coordenadas pos1, coordenadas pos2);
+    int jugador_moverse(int nro_jugador);
 public:
     Equipo(gameMaster *belcebu, color equipo,
            estrategia strat, int cant_jugadores, int quantum, vector<coordenadas> posiciones, bool busqueda_distribuida);

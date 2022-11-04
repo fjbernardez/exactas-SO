@@ -83,6 +83,8 @@ gameMaster::gameMaster(Config config,estrategia this_game_strat) {
     // Insertar código que crea necesario de inicialización
     assert( this_game_strat == SECUENCIAL || this_game_strat == USTEDES || this_game_strat == RR || this_game_strat == SHORTEST);
     strat = this_game_strat;
+    sem_init(&turno_rojo,0,0);
+    sem_init(&turno_azul,0,0);
 }
 
 void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos_nueva, color colorEquipo) {
@@ -90,49 +92,70 @@ void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos
     tablero[pos_anterior.first][pos_anterior.second] = VACIO;
     tablero[pos_nueva.first][pos_nueva.second] = colorEquipo;
 }
-
+void gameMaster::mover_jugador_posiciones(coordenadas pos, int nro_jugador, color colorEquipo){
+    if (colorEquipo == AZUL) {
+        pos_jugadores_azules[nro_jugador] = pos;
+    } else {
+        pos_jugadores_rojos[nro_jugador] = pos;
+    }
+}
 
 int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
-    moviendo_jugador.lock();
-    cout<< "Soy el jugador " << nro_jugador << " del equipo " << turno << " y me acabo de mover en la ronda "<< nro_ronda <<endl;
-    moviendo_jugador.unlock();
-    return 0;
-    /*coordenadas actual_pos;
+
+
+    coordenadas actual_pos;
     if (turno == AZUL) {
         actual_pos = pos_jugadores_azules[nro_jugador];
     } else {
         actual_pos = pos_jugadores_rojos[nro_jugador];
     }
+    //El jugador ya se fijo que sea valida (Que la coordenada esta dentro del tablero)
     coordenadas apuntada_pos = proxima_posicion(actual_pos, dir);
-    // Chequear que la movida sea valida
-    assert(es_posicion_valida(apuntada_pos));
     // Que no se puedan mover 2 jugadores a la vez
     moviendo_jugador.lock();
     // Inicio Critica
     color apuntado_color = en_posicion(apuntada_pos);
-    if (es_color_libre(apuntado_color)) {
+
+    bool esta_libre = es_color_libre(apuntado_color);
+
+    cout << apuntado_color << endl;
+    if (esta_libre){
+        //mover_jugador_tablero solo cambia los colores en el tablero
+
         mover_jugador_tablero(actual_pos, apuntada_pos, turno);
-    } else if (((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) ||
-               ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
-        mover_jugador_tablero(actual_pos, apuntada_pos, turno);
-        // setear la variable ganador
-        ganador = turno;
-        nro_ronda = 0;
-    } else {
-        // Devolver -1 simboliza que el jugador quizo moverse a un lugar y estaba ocupado
-        return -1;
+        mover_jugador_posiciones(apuntada_pos,nro_jugador,turno);
+        //cout<< "Soy el jugador " << nro_jugador << " del equipo " << turno << " y me acabo de mover en la ronda "<< nro_ronda <<endl;
+        //cout<< "Estoy en pos " << actual_pos.first << " " << actual_pos.second << " y quiero ir a  "<< apuntada_pos.first << " " << apuntada_pos.second <<endl;
+
+    }
+    else {
+        if (((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) or
+             ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
+            mover_jugador_tablero(actual_pos, apuntada_pos, turno);
+            mover_jugador_posiciones(apuntada_pos,nro_jugador,turno);
+            // setear la variable ganador
+            ganador = turno;
+            nro_ronda = 0;
+        }
+        else {
+            moviendo_jugador.unlock();
+            return -1;
+        }
+
     }
     // Fin Critica
     moviendo_jugador.unlock();
+
     // Devolver acorde a la descripción
-    return nro_ronda;*/
+    return nro_ronda;
 }
 
 
 void gameMaster::termino_ronda(color equipo) {
+
     // FIXME: Hacer chequeo de que es el color correcto que está llamando
     // FIXME: Hacer chequeo que hayan terminado todos los jugadores del equipo o su quantum (via mover_jugador)
-    // Hacer esto luego de checkear lo de arriba
+    // El checkeo lo hacen los jugadores, se llama terminar ronda cuando ya jugaron todos
     terminando_ronda.lock();
     if(equipo == turno){
         nro_ronda++;
@@ -178,8 +201,6 @@ coordenadas gameMaster::proxima_posicion(coordenadas anterior, direccion movimie
 }
 
 void gameMaster::comenzar_partida(){
-    sem_init(&turno_rojo,0,0);
-    sem_init(&turno_azul,0,0);
 
     //Empiezan los rojos
     for (int i = 0; i < jugadores_por_equipos; ++i) {

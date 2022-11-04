@@ -29,6 +29,7 @@ private:
     color obtener_coordenadas(coordenadas coord);
 
     void mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos_nueva, color colorEquipo);
+    void mover_jugador_posiciones(coordenadas pos, int nro_jugador, color colorEquipo);
     //
     //...
     //

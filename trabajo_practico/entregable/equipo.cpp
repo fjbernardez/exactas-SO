@@ -214,23 +214,6 @@ coordenadas Equipo::buscar_bandera_contraria(int nro_jugador) {
 }
 
 void Equipo::jugar_turno_estrategia_secuencial(int nro_jugador){
-    //Moverse
-    /*nro_intento = -1;
-    nro_ronda = -1;
-    //Seccion donde solo entran los jugadores si es el turno de su equipo
-    while(nro_ronda == -1){
-        nro_intento ++;
-        //TODO: una funcion más inteligente para decidir dir_a_mover
-        direccion dir_a_mover;
-        if(equipo == ROJO){
-            dir_a_mover = (nro_intento == 0) ? DERECHA : ARRIBA;
-        }
-        else{
-            dir_a_mover = (nro_intento == 0) ? IZQUIERDA : ABAJO;
-        }
-        //nro_ronda devuelve -1 si el lugar al que se quizo mover estaba bloqueado
-
-    }*/
 
     //Nos aseguramos que todos los jugadores esten listos para jugar este turno
     equipo_coordinacion_mutex.lock();
@@ -244,7 +227,8 @@ void Equipo::jugar_turno_estrategia_secuencial(int nro_jugador){
     equipo_coordinacion_mutex.unlock();
     sem_wait(&equipo_coordinacion_sem_entrada);
 
-    int nro_ronda = this->belcebu->mover_jugador(DERECHA, nro_jugador);
+    //El jugador intentara moverse, si no tiene lugares disponibles terminara su turno
+    int nro_ronda = jugador_moverse(nro_jugador);
 
     //Si todos movieron, terminamos turno
     equipo_coordinacion_mutex.lock();
@@ -291,7 +275,7 @@ void Equipo::jugar_turno_estrategia_rr(int nro_jugador) {
 
         equipo_coordinacion_mutex.lock();
         quantum_que_habra_cuando_me_toque = quantum_restante - cant_jugadores;
-        nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
+        nro_ronda = jugador_moverse(nro_jugador);
 
         quantum_restante--;
 
@@ -340,7 +324,7 @@ void Equipo::jugar_turno_estrategia_shortest(int nro_jugador) {
 
 
     if(nro_jugador == nro_jugador_cercano){
-        nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
+        nro_ronda = jugador_moverse(nro_jugador);
     }
 
     equipo_coordinacion_mutex.lock();
@@ -374,7 +358,7 @@ void Equipo::jugar_turno_estrategia_ustedes(int nro_jugador) {
 
     if(nro_jugador == nro_jugador_cercano){
         while (quantum_restante > 0){
-            nro_ronda = belcebu->mover_jugador(DERECHA, nro_jugador);
+            nro_ronda = jugador_moverse(nro_jugador);
             quantum_restante--;
         }
 
@@ -393,4 +377,54 @@ void Equipo::jugar_turno_estrategia_ustedes(int nro_jugador) {
     equipo_coordinacion_mutex.unlock();
     sem_wait(&equipo_coordinacion_sem_salida);
 
+}
+
+//Con esta funcion devolvemos una lista de direcciones, ordenadas por optimalidad de llevarnos de pos1 a pos2
+vector<direccion> Equipo::mejores_posiciones(coordenadas pos1, coordenadas pos2){
+    vector<direccion> vertical;
+    vector<direccion> horizontal;
+    int horDist = pos1.first - pos2.first;
+    int verDist = pos1.second - pos2.second;
+    if(horDist > 0){
+        horizontal = {DERECHA, IZQUIERDA};
+    }
+    else{
+        horizontal = {IZQUIERDA, DERECHA};
+    }
+    if(verDist > 0){
+        vertical = {ABAJO, ARRIBA};
+    }
+    else{
+        vertical = {ARRIBA, ABAJO};
+    }
+    if(abs(verDist) > abs(horDist)){
+        return {vertical[0], horizontal[0], vertical[1], horizontal[1]};
+    }
+    else {
+        return {horizontal[0], vertical[0], horizontal[1], vertical[1]};
+    }
+}
+
+//El jugador busca las posibles direcciones a las que se puede mover, e intenta moverse a ellas en orden optimo
+//El jugador puede ir en direccion contraria a la optima si estan ocupadas las posiciones optimas
+int Equipo::jugador_moverse(int nro_jugador){
+    int nro_ronda = -1;
+    coordenadas mi_posicion = posiciones[nro_jugador];
+    vector<direccion> mis_direcciones_optimas = mejores_posiciones(mi_posicion,pos_bandera_contraria);
+    int intento = 0;
+    direccion probando_direccion;
+    coordenadas probando_coordenada;
+    while(nro_ronda == -1 and intento < 4){
+        probando_direccion = mis_direcciones_optimas[intento];
+        probando_coordenada = this->belcebu->proxima_posicion(mi_posicion,probando_direccion);
+        if(this->belcebu->es_posicion_valida(probando_coordenada)){
+            nro_ronda = this->belcebu->mover_jugador(mis_direcciones_optimas[intento],nro_jugador);
+        }
+        intento++;
+    }
+    if(nro_ronda >-1){
+        //Se pudo mover el jugador, debe actualizar su posicion en el vector de posiciones del equipo
+        posiciones[nro_jugador] = probando_coordenada;
+    }
+    return nro_ronda;
 }
