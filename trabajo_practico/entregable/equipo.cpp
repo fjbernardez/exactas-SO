@@ -143,7 +143,7 @@ coordenadas Equipo::buscar_bandera_contraria(int nro_jugador) {
         bool no_se_encontro = true;
         coordenadas pos_mirando;
         color color_mirando;
-        while(no_se_encontro && i < tam_Y){
+        while(i < tam_Y){
 
             if(equipo==ROJO){
                 pos_mirando =make_pair(this->tam_X - 1,i);
@@ -161,9 +161,6 @@ coordenadas Equipo::buscar_bandera_contraria(int nro_jugador) {
                 cout << print << endl;
                 pos_bandera_contraria = pos_mirando;
             }
-            equipo_coordinacion_mutex.lock();
-            no_se_encontro = (pos_bandera_contraria == make_pair(-1,-1));
-            equipo_coordinacion_mutex.unlock();
             i+= cant_jugadores;
         }
     }
@@ -176,7 +173,7 @@ coordenadas Equipo::buscar_bandera_contraria(int nro_jugador) {
         equipo_coordinacion_mutex.unlock();
         coordenadas pos_mirando;
         color color_mirando;
-        while(no_se_encontro && i <tam_Y){
+        while(i <tam_Y){
             if(equipo==ROJO){
                 pos_mirando =make_pair(99,i);
             }
@@ -185,13 +182,16 @@ coordenadas Equipo::buscar_bandera_contraria(int nro_jugador) {
             }
             color_mirando = belcebu->en_posicion(pos_mirando);
             if(color_mirando == bandera_contraria){
-                equipo_coordinacion_mutex.lock();
+                clock_gettime(CLOCK_REALTIME,&finish);
+                string col = this->equipo == 0 ? "AZUL" : "ROJO";
+                string print = "El equipo " + col +
+                               " encontro la bandera en tiempo " + to_string(finish.tv_sec - start.tv_sec) + "sec " +
+                               to_string(finish.tv_nsec - start.tv_nsec) + "nsec en la posicion " + to_string(pos_mirando.first) + " " + to_string(pos_mirando.second);
+                cout << print << endl;
                 clock_gettime(CLOCK_REALTIME,&finish);
                 pos_bandera_contraria = pos_mirando;
-                equipo_coordinacion_mutex.unlock();
             }
             equipo_coordinacion_mutex.lock();
-            no_se_encontro = (pos_bandera_contraria == make_pair(-1,-1));
             buscar_bandera_i ++;
             i = buscar_bandera_i;
             equipo_coordinacion_mutex.unlock();
