@@ -295,7 +295,7 @@ void Equipo::jugar_turno_estrategia_shortest(int nro_jugador) {
     //Solo si son el más cercano, se mueven y llaman a terminar turno
 
     //nro_jugador_cercano se debe hacer funcion que compare con donde esta la bandera
-    int nro_jugador_cercano = 0;
+    int nro_jugador_cercano = jugadorMasCercano();
     int nro_ronda;
     equipo_coordinacion_mutex.lock();
     cant_jugadores_listos_para_jugar++;
@@ -328,7 +328,7 @@ void Equipo::jugar_turno_estrategia_shortest(int nro_jugador) {
 void Equipo::jugar_turno_estrategia_ustedes(int nro_jugador) {
     //Dejo una version con estrategia: Se mueve Quantum veces el jugador más cercano al principio el turno
 
-    int nro_jugador_cercano = 0;
+    int nro_jugador_cercano = jugadorMasCercano();
     int nro_ronda;
     equipo_coordinacion_mutex.lock();
     cant_jugadores_listos_para_jugar++;
