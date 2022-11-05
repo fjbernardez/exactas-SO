@@ -58,6 +58,24 @@ void Equipo::jugador(int nro_jugador) {
 
 }
 
+int Equipo::distancia(coordenadas pos1, coordenadas pos2){
+    int res = abs(pos1.first - pos2.first) + abs(pos1.second - pos2.second);
+    return res;
+}
+
+int Equipo::jugadorMasCercano(){
+    int res = 0;
+    int distanciaMasCercano = distancia(this->posiciones[0], this->pos_bandera_contraria);
+    for(int i = 1; i < this->cant_jugadores; i++){
+        int dist = distancia(this->posiciones[i], this->pos_bandera_contraria);
+        if(dist < distanciaMasCercano){
+            res = i;
+            distanciaMasCercano = dist;
+        }
+    }
+    return res;
+}
+
 Equipo::Equipo(gameMaster *belcebu, color equipo,
                estrategia strat, int cant_jugadores, int quantum, vector<coordenadas> posiciones,bool busqueda_distribuida) {
     this->belcebu = belcebu;

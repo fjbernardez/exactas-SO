@@ -44,9 +44,8 @@ private:
     void jugador(int nro_jugador);
 
     coordenadas buscar_bandera_contraria(int nro_jugador);
-    //
-    // ...
-    //
+    int distancia(coordenadas pos1, coordenadas pos2);
+    int jugadorMasCercano();
     void jugar_turno_estrategia_secuencial(int nro_jugador);
     void jugar_turno_estrategia_rr(int nro_jugador);
     void jugar_turno_estrategia_shortest(int nro_jugador);
