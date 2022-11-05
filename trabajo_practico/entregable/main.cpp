@@ -10,7 +10,7 @@
 
 using namespace std;
 
-const estrategia strat = RR;
+const estrategia strat = USTEDES;
 const int quantum = 10;
 const int busqueda_distribuida = true;
 

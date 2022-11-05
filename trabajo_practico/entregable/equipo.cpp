@@ -12,9 +12,6 @@ direccion Equipo::apuntar_a(coordenadas pos1, coordenadas pos2) {
 
 
 void Equipo::jugador(int nro_jugador) {
-    //
-    // ...
-    //
     //Hay barrera para asegurarse que todos los jugadores saben donde esta la bandera de antes de comenzar a moverse..
     //.. ya que algunos jugadores pueden terminar buscar_bandera_contraria sin saber donde esta
     coordenadas pos_bandera_encontrada = buscar_bandera_contraria(nro_jugador);
@@ -29,8 +26,6 @@ void Equipo::jugador(int nro_jugador) {
     sem_wait(&equipo_coordinacion_sem_bandera);
 
     while (!this->belcebu->termino_juego()) { // Chequear que no haya una race condition en gameMaster
-
-
         //La idea es que todos los jugadores se quedan esperando a que belcebu les de..
         //.. permisos para jugar cuando sea su turno, el equipo rojo recibe al comienzo
         if (equipo == AZUL) {
@@ -59,9 +54,6 @@ void Equipo::jugador(int nro_jugador) {
         }
         // Termino ronda ? Recordar llamar a belcebu...
         // OJO. Esto lo termina un jugador...
-        //
-        // ...
-        //
     }
 
 }
@@ -133,22 +125,23 @@ coordenadas Equipo::buscar_bandera_contraria(int nro_jugador) {
         bool no_se_encontro = true;
         coordenadas pos_mirando;
         color color_mirando;
-        while(no_se_encontro && i <tam_Y){
+        while(no_se_encontro && i < tam_Y){
 
             if(equipo==ROJO){
-                pos_mirando =make_pair(99,i);
+                pos_mirando =make_pair(this->tam_X - 1,i);
             }
             else{
                 pos_mirando =make_pair(1,i);
             }
             color_mirando = belcebu->en_posicion(pos_mirando);
             if(color_mirando == bandera_contraria){
-                equipo_coordinacion_mutex.lock();
                 clock_gettime(CLOCK_REALTIME,&finish);
-
-                cout << "El equipo " << equipo << " encontro la bandera en tiempo " << (finish.tv_sec - start.tv_sec)  << "sec " <<(finish.tv_nsec - start.tv_nsec)  << "nsec en la posicion " << pos_mirando.first << " " << pos_mirando.second << endl;
-                     pos_bandera_contraria = pos_mirando;
-                equipo_coordinacion_mutex.unlock();
+                string col = this->equipo == 0 ? "AZUL" : "ROJO";
+                string print = "El equipo " + col +
+                        " encontro la bandera en tiempo " + to_string(finish.tv_sec - start.tv_sec) + "sec " +
+                        to_string(finish.tv_nsec - start.tv_nsec) + "nsec en la posicion " + to_string(pos_mirando.first) + " " + to_string(pos_mirando.second);
+                cout << print << endl;
+                pos_bandera_contraria = pos_mirando;
             }
             equipo_coordinacion_mutex.lock();
             no_se_encontro = (pos_bandera_contraria == make_pair(-1,-1));
@@ -188,13 +181,6 @@ coordenadas Equipo::buscar_bandera_contraria(int nro_jugador) {
     }
 
     return pos_bandera_contraria;
-
-
-    /*
-     *
-
-    return pos_bandera_contraria;
-     */
 }
 
 void Equipo::jugar_turno_estrategia_secuencial(int nro_jugador){
@@ -257,7 +243,6 @@ void Equipo::jugar_turno_estrategia_rr(int nro_jugador) {
         //Aca se esperaría que haya solo un jugador por vez..
         // .. no debería ser necesario el mutex
 
-        equipo_coordinacion_mutex.lock();
         quantum_que_habra_cuando_me_toque = quantum_restante - cant_jugadores;
         nro_ronda = jugador_moverse(nro_jugador);
 
@@ -267,7 +252,6 @@ void Equipo::jugar_turno_estrategia_rr(int nro_jugador) {
         if(quantum_restante > 0){
             sem_post(&rr_coordinacion_sem[(nro_jugador + 1) % cant_jugadores]);
         }
-        equipo_coordinacion_mutex.unlock();
     }
 
     //barrera para ver que todos terminaron de moverse
@@ -407,9 +391,11 @@ int Equipo::jugador_moverse(int nro_jugador){
     //Si dice ronda -1 es que no se pudo mover
     if(!this->belcebu->termino_juego() || probando_coordenada == this->pos_bandera_contraria) {
         string col = this->equipo == 0 ? "AZUL" : "ROJO";
-        cout << "Soy el jugador " << nro_jugador << " del equipo " << col << " y me acabo de mover en la ronda "
-             << nro_ronda << endl;
-        cout << "Me movi a la posicion " << probando_coordenada.first << " " << probando_coordenada.second << endl;
+        string print = "Soy el jugador " + to_string(nro_jugador) +
+                " del equipo " + col + " y me acabo de mover en la ronda " + to_string(nro_ronda);
+        cout << print << endl;
+        string print2 = "Me movi a la posicion " + to_string(probando_coordenada.first) + " " + to_string(probando_coordenada.second);
+        cout <<  print2 << endl;
     }
     equipo_coordinacion_mutex.unlock();
     if(nro_ronda >-1){
