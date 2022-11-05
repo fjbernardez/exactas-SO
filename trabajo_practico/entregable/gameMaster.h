@@ -22,8 +22,7 @@ private:
     color turno;
     estrategia strat;
     //...
-    mutex moviendo_jugador;
-    mutex terminando_ronda;
+    mutex moviendo_jugador;   
 
     // Métodos privados
     color obtener_coordenadas(coordenadas coord);

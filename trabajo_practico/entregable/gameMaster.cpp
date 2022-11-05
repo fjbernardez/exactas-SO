@@ -102,7 +102,6 @@ void gameMaster::mover_jugador_posiciones(coordenadas pos, int nro_jugador, colo
 
 int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
 
-
     coordenadas actual_pos;
     if (turno == AZUL) {
         actual_pos = pos_jugadores_azules[nro_jugador];
@@ -149,11 +148,9 @@ int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
 
 
 void gameMaster::termino_ronda(color equipo) {
-
     // FIXME: Hacer chequeo de que es el color correcto que está llamando
     // FIXME: Hacer chequeo que hayan terminado todos los jugadores del equipo o su quantum (via mover_jugador)
     // El checkeo lo hacen los jugadores, se llama terminar ronda cuando ya jugaron todos
-    terminando_ronda.lock();
     if(equipo == turno){
         nro_ronda++;
         turno = (turno == ROJO) ? AZUL : ROJO;
@@ -168,7 +165,6 @@ void gameMaster::termino_ronda(color equipo) {
             }
         }
     }
-    terminando_ronda.unlock();
 }
 
 bool gameMaster::termino_juego() {
