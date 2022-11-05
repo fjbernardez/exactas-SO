@@ -33,45 +33,29 @@ void Equipo::jugador(int nro_jugador) {
 
         //La idea es que todos los jugadores se quedan esperando a que belcebu les de..
         //.. permisos para jugar cuando sea su turno, el equipo rojo recibe al comienzo
-        if (equipo == AZUL){
+        if (equipo == AZUL) {
             sem_wait(&this->belcebu->turno_azul);
-        }
-        else{
+        } else {
             sem_wait(&this->belcebu->turno_rojo);
         }
-
+        if (!this->belcebu->termino_juego()) {
         switch (this->strat) {
             //SECUENCIAL,RR,SHORTEST,USTEDES
             case (SECUENCIAL):
-                //
-                // ...
-                //
                 Equipo::jugar_turno_estrategia_secuencial(nro_jugador);
-
                 break;
-
             case (RR):
-                //
-                // ...
-                //
                 Equipo::jugar_turno_estrategia_rr(nro_jugador);
                 break;
-
             case (SHORTEST):
-                //
-                // ...
-                //
                 Equipo::jugar_turno_estrategia_shortest(nro_jugador);
                 break;
-
             case (USTEDES):
-                //
-                // ...
-                //
                 Equipo::jugar_turno_estrategia_ustedes(nro_jugador);
                 break;
             default:
                 break;
+            }
         }
         // Termino ronda ? Recordar llamar a belcebu...
         // OJO. Esto lo termina un jugador...
@@ -387,20 +371,17 @@ vector<direccion> Equipo::mejores_posiciones(coordenadas pos1, coordenadas pos2)
     int verDist = pos1.second - pos2.second;
     if(horDist > 0){
         horizontal = {IZQUIERDA, DERECHA};
-    }
-    else{
+    } else{
         horizontal = {DERECHA, IZQUIERDA};
     }
     if(verDist > 0){
         vertical = {ARRIBA, ABAJO};
-    }
-    else{
+    } else {
         vertical = {ABAJO, ARRIBA};
     }
     if(abs(verDist) > abs(horDist)){
         return {vertical[0], horizontal[0], vertical[1], horizontal[1]};
-    }
-    else {
+    } else {
         return {horizontal[0], vertical[0], horizontal[1], vertical[1]};
     }
 }
@@ -424,13 +405,16 @@ int Equipo::jugador_moverse(int nro_jugador){
     }
     equipo_coordinacion_mutex.lock();
     //Si dice ronda -1 es que no se pudo mover
-    cout<< "Soy el jugador " << nro_jugador << " del equipo " << equipo    << " y me acabo de mover en la ronda "<< nro_ronda <<endl;
-    cout<< "Me movi a la posicion " << probando_coordenada.first << " " << probando_coordenada.second << endl;
+    if(!this->belcebu->termino_juego() || probando_coordenada == this->pos_bandera_contraria) {
+        string col = this->equipo == 0 ? "AZUL" : "ROJO";
+        cout << "Soy el jugador " << nro_jugador << " del equipo " << col << " y me acabo de mover en la ronda "
+             << nro_ronda << endl;
+        cout << "Me movi a la posicion " << probando_coordenada.first << " " << probando_coordenada.second << endl;
+    }
     equipo_coordinacion_mutex.unlock();
     if(nro_ronda >-1){
         //Se pudo mover el jugador, debe actualizar su posicion en el vector de posiciones del equipo
         posiciones[nro_jugador] = probando_coordenada;
-
     }
     return nro_ronda;
 }

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-const estrategia strat = SECUENCIAL;
+const estrategia strat = RR;
 const int quantum = 10;
 const int busqueda_distribuida = true;
 
@@ -33,8 +33,8 @@ int main() {
 
 
 
-    cout << "Bandera capturada por el equipo " << belcebu.ganador << ". Felicidades!" << endl;
+    cout << "Bandera capturada por el equipo " << color(belcebu.ganador) << ". Felicidades!" << endl;
     belcebu.finalizar_partida();
-
+    return 0;
 }
 

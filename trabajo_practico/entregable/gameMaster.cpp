@@ -128,8 +128,8 @@ int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
     else {
         if (((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) or
              ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
-            mover_jugador_tablero(actual_pos, apuntada_pos, turno);
-            mover_jugador_posiciones(apuntada_pos,nro_jugador,turno);
+            //mover_jugador_tablero(actual_pos, apuntada_pos, turno);
+            //mover_jugador_posiciones(apuntada_pos,nro_jugador,turno);
             // setear la variable ganador
             ganador = turno;
             nro_ronda = 0;
