@@ -386,16 +386,16 @@ vector<direccion> Equipo::mejores_posiciones(coordenadas pos1, coordenadas pos2)
     int horDist = pos1.first - pos2.first;
     int verDist = pos1.second - pos2.second;
     if(horDist > 0){
-        horizontal = {DERECHA, IZQUIERDA};
-    }
-    else{
         horizontal = {IZQUIERDA, DERECHA};
     }
+    else{
+        horizontal = {DERECHA, IZQUIERDA};
+    }
     if(verDist > 0){
-        vertical = {ABAJO, ARRIBA};
+        vertical = {ARRIBA, ABAJO};
     }
     else{
-        vertical = {ARRIBA, ABAJO};
+        vertical = {ABAJO, ARRIBA};
     }
     if(abs(verDist) > abs(horDist)){
         return {vertical[0], horizontal[0], vertical[1], horizontal[1]};
@@ -425,10 +425,12 @@ int Equipo::jugador_moverse(int nro_jugador){
     equipo_coordinacion_mutex.lock();
     //Si dice ronda -1 es que no se pudo mover
     cout<< "Soy el jugador " << nro_jugador << " del equipo " << equipo    << " y me acabo de mover en la ronda "<< nro_ronda <<endl;
+    cout<< "Me movi a la posicion " << probando_coordenada.first << " " << probando_coordenada.second << endl;
     equipo_coordinacion_mutex.unlock();
     if(nro_ronda >-1){
         //Se pudo mover el jugador, debe actualizar su posicion en el vector de posiciones del equipo
         posiciones[nro_jugador] = probando_coordenada;
+
     }
     return nro_ronda;
 }
