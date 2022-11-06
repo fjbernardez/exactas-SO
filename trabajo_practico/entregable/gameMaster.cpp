@@ -1,5 +1,4 @@
-#include <sys/unistd.h>
-#include <assert.h>     /* assert */
+#include <assert.h>
 #include "gameMaster.h"
 #include <mutex>
 #include <semaphore.h>
@@ -28,7 +27,7 @@ int gameMaster::distancia(coordenadas c1, coordenadas c2) {
     return abs(c1.first - c2.first) + abs(c1.second - c2.second);
 }
 
-gameMaster::gameMaster(Config config,estrategia this_game_strat) {
+gameMaster::gameMaster(Config config, estrategia this_game_strat) {
     assert(config.x > 0);
     assert(config.y > 0); // Tamaño adecuado del tablero
 
@@ -57,8 +56,10 @@ gameMaster::gameMaster(Config config,estrategia this_game_strat) {
     this->pos_bandera_azul = config.bandera_azul;
     this->pos_jugadores_rojos = config.pos_rojo;
     this->pos_jugadores_azules = config.pos_azul;
+
     // Seteo tablero
     tablero.resize(x);
+
     for (int i = 0; i < x; ++i) {
         tablero[i].resize(y);
         fill(tablero[i].begin(), tablero[i].end(), VACIO);
@@ -66,7 +67,8 @@ gameMaster::gameMaster(Config config,estrategia this_game_strat) {
 
 
     for (auto &coord: config.pos_rojo) {
-        assert(es_color_libre(tablero[coord.first][coord.second])); //Compruebo que no haya otro jugador en esa posicion
+        // Compruebo que no haya otro jugador en esa posicion
+        assert(es_color_libre(tablero[coord.first][coord.second]));
         tablero[coord.first][coord.second] = ROJO; // guardo la posicion
     }
 
@@ -80,11 +82,12 @@ gameMaster::gameMaster(Config config,estrategia this_game_strat) {
     this->turno = ROJO;
 
     cout << "SE HA INICIALIZADO GAMEMASTER CON EXITO" << endl;
-    // Insertar código que crea necesario de inicialización
-    assert( this_game_strat == SECUENCIAL || this_game_strat == USTEDES || this_game_strat == RR || this_game_strat == SHORTEST);
-    strat = this_game_strat;
-    sem_init(&turno_rojo,0,0);
-    sem_init(&turno_azul,0,0);
+
+    assert(this_game_strat == SECUENCIAL || this_game_strat == USTEDES || this_game_strat == RR ||
+           this_game_strat == SHORTEST);
+
+    sem_init(&turno_rojo, 0, 0);
+    sem_init(&turno_azul, 0, 0);
 }
 
 void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos_nueva, color colorEquipo) {
@@ -92,7 +95,8 @@ void gameMaster::mover_jugador_tablero(coordenadas pos_anterior, coordenadas pos
     tablero[pos_anterior.first][pos_anterior.second] = VACIO;
     tablero[pos_nueva.first][pos_nueva.second] = colorEquipo;
 }
-void gameMaster::mover_jugador_posiciones(coordenadas pos, int nro_jugador, color colorEquipo){
+
+void gameMaster::mover_jugador_posiciones(coordenadas pos, int nro_jugador, color colorEquipo) {
     if (colorEquipo == AZUL) {
         pos_jugadores_azules[nro_jugador] = pos;
     } else {
@@ -103,42 +107,42 @@ void gameMaster::mover_jugador_posiciones(coordenadas pos, int nro_jugador, colo
 int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
 
     coordenadas actual_pos;
+
     if (turno == AZUL) {
         actual_pos = pos_jugadores_azules[nro_jugador];
     } else {
         actual_pos = pos_jugadores_rojos[nro_jugador];
     }
-    //El jugador ya se fijo que sea valida (Que la coordenada esta dentro del tablero)
+
+    // El jugador ya se fijo que sea valida (Que la coordenada esta dentro del tablero)
     coordenadas apuntada_pos = proxima_posicion(actual_pos, dir);
+
     // Que no se puedan mover 2 jugadores a la vez
     moviendo_jugador.lock();
+
     // Inicio Critica
     color apuntado_color = en_posicion(apuntada_pos);
 
     bool esta_libre = es_color_libre(apuntado_color);
 
-    if (esta_libre){
+    if (esta_libre) {
+
         //mover_jugador_tablero solo cambia los colores en el tablero
-
         mover_jugador_tablero(actual_pos, apuntada_pos, turno);
-        mover_jugador_posiciones(apuntada_pos,nro_jugador,turno);
+        mover_jugador_posiciones(apuntada_pos, nro_jugador, turno);
 
-    }
-    else {
+    } else {
         if (((apuntado_color == BANDERA_AZUL) && (turno == ROJO)) or
-             ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
-            //mover_jugador_tablero(actual_pos, apuntada_pos, turno);
-            //mover_jugador_posiciones(apuntada_pos,nro_jugador,turno);
-            // setear la variable ganador
+            ((apuntado_color == BANDERA_ROJA) && (turno == AZUL))) {
             ganador = turno;
             nro_ronda = 0;
-        }
-        else {
+        } else {
             moviendo_jugador.unlock();
             return -1;
         }
 
     }
+
     // Fin Critica
     moviendo_jugador.unlock();
 
@@ -148,18 +152,16 @@ int gameMaster::mover_jugador(direccion dir, int nro_jugador) {
 
 
 void gameMaster::termino_ronda(color equipo) {
-    // FIXME: Hacer chequeo de que es el color correcto que está llamando
-    // FIXME: Hacer chequeo que hayan terminado todos los jugadores del equipo o su quantum (via mover_jugador)
+
     // El checkeo lo hacen los jugadores, se llama terminar ronda cuando ya jugaron todos
-    if(equipo == turno){
+    if (equipo == turno) {
         nro_ronda++;
         turno = (turno == ROJO) ? AZUL : ROJO;
-        if(turno == ROJO){
+        if (turno == ROJO) {
             for (int i = 0; i < jugadores_por_equipos; ++i) {
                 sem_post(&turno_rojo);
             }
-        }
-        else{
+        } else {
             for (int i = 0; i < jugadores_por_equipos; ++i) {
                 sem_post(&turno_azul);
             }
@@ -193,14 +195,15 @@ coordenadas gameMaster::proxima_posicion(coordenadas anterior, direccion movimie
     return anterior; // está haciendo una copia por constructor
 }
 
-void gameMaster::comenzar_partida(){
+void gameMaster::comenzar_partida() {
 
-    //Empiezan los rojos
+    // Empiezan los rojos
     for (int i = 0; i < jugadores_por_equipos; ++i) {
         sem_post(&turno_rojo);
     }
 }
-void gameMaster::finalizar_partida(){
+
+void gameMaster::finalizar_partida() {
     sem_destroy(&turno_rojo);
     sem_destroy(&turno_azul);
 }
