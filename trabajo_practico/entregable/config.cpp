@@ -1,6 +1,5 @@
 #include "config.h"
 
-
 Config::Config() {
     ifstream config("./config/config_parameters.csv");
     if (!config) {
@@ -29,7 +28,5 @@ Config::Config() {
         config >> posiciones_iniciales_first >> posiciones_iniciales_second;
         pos_azul.push_back(make_pair(posiciones_iniciales_first, posiciones_iniciales_second));
     }
-
-
 };
 
