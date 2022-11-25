@@ -4,15 +4,56 @@
 #include "equipo.h"
 #include "definiciones.h"
 #include "config.h"
+#include "string.h"
 
 using namespace std;
 
-const estrategia strat = SECUENCIAL;
+estrategia strat = SECUENCIAL;
+const char *config_filename = "./config/config_parameters.csv";
 const int quantum = 10;
 const int busqueda_distribuida = true;
 
-int main() {
-    Config config = *(new Config());
+inline void print_usage() {
+	cout << "Uso: test_tp_sistemas [-config filename] [-strat secuencial|rr|shortest|custom]" << endl;
+}
+
+int main(int argc, char **argv) {
+	for (int i = 1; i < argc; ++i) {
+		if (strcmp(argv[i], "-strat") == 0) {
+			if (++i >= argc) {
+				cerr << "ERROR: Falta estraregia luego de -strat" << endl;
+				print_usage();
+				return 1;
+			}
+			else if (strcmp(argv[i], "secuencial") == 0)
+				strat = SECUENCIAL;
+			else if (strcmp(argv[i], "rr") == 0)
+				strat = RR;
+			else if (strcmp(argv[i], "shortest") == 0)
+				strat = SHORTEST;
+			else if (strcmp(argv[i], "custom") == 0)
+				strat = USTEDES;
+			else {
+				cerr << "ERROR: Estrategia \"" << argv[i] << "\" no reconocida." << endl;
+				return 1;
+			}
+		}
+		else if (strcmp(argv[i], "-config") == 0) {
+			if (++i >= argc) {
+				cerr << "ERROR: Falta nombre de archivo luego de -config" << endl;
+				print_usage();
+				return 1;
+			}
+			else
+				config_filename = argv[i];
+		}
+		else {
+			cerr << "ERROR: Argumento invalido: \"" << argv[i] << "\"" << endl;
+			print_usage();
+			return 1;
+		}
+	}
+    Config config = *(new Config(config_filename));
     gameMaster belcebu = gameMaster(config, strat);
 
     // Creo equipos (lanza procesos)

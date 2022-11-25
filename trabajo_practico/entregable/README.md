@@ -12,7 +12,8 @@
 2. make
 
 ### Ejecución
-1. ./test_tp_sistemas
+1. ./test_tp_sistemas [-config filename] [-strat secuencial|rr|shortest|custom]
+- ./run_tests.sh Corre el test con cada archivo de configuracion en ./config/ con cada estrategia.
 
 #### Configuración
     Para testear diferentes configuraciones de juego modificar el archivo config/config_parameters.csv acorde a lo detallado en config/documentacion.txt

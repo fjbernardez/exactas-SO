@@ -11,7 +11,7 @@ using namespace std;
 
 class Config {
 public:
-    Config();
+    Config(const char *config_filename);
 
     vector<coordenadas> pos_rojo, pos_azul;
     coordenadas bandera_roja, bandera_azul;
